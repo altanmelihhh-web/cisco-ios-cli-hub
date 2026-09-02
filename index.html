@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cisco CLI Hub — IOS / NX-OS Switch & Router Reference</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <h1>Cisco CLI Hub</h1>
+      <div class="subtitle">v1.0 · IOS / NX-OS · Switch & Router</div>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="search" placeholder="Ara: komut, senaryo...  (/ tusu)" autocomplete="off">
+    </div>
+    <ul class="nav-list">
+      <li><a data-section="dashboard" class="active"><span class="icon">&#9646;</span> Dashboard</a></li>
+      <li><a data-section="commands"><span class="icon">&#9881;</span> Komut Kutuphanesi</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">Routing</li>
+      <li><a data-section="bgp"><span class="icon">&#9670;</span> BGP</a></li>
+      <li><a data-section="ospf"><span class="icon">&#9632;</span> OSPF</a></li>
+      <li><a data-section="eigrp"><span class="icon">&#9679;</span> EIGRP</a></li>
+      <li><a data-section="static"><span class="icon">&#8644;</span> Static / IP SLA / Track</a></li>
+      <li><a data-section="routemap"><span class="icon">&#128221;</span> Route-Map / PBR</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">Switching</li>
+      <li><a data-section="vlan"><span class="icon">&#128268;</span> VLAN / Trunk / VTP</a></li>
+      <li><a data-section="stp"><span class="icon">&#9878;</span> STP</a></li>
+      <li><a data-section="etherchannel"><span class="icon">&#9776;</span> LACP / EtherChannel</a></li>
+      <li><a data-section="hsrp"><span class="icon">&#128274;</span> HSRP / VRRP</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">VPN / WAN</li>
+      <li><a data-section="ipsec"><span class="icon">&#128274;</span> IPsec VPN / GRE</a></li>
+      <li><a data-section="mpls"><span class="icon">&#128268;</span> MPLS / L3VPN</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">Servisler</li>
+      <li><a data-section="acl"><span class="icon">&#128737;</span> ACL</a></li>
+      <li><a data-section="nat"><span class="icon">&#8644;</span> NAT</a></li>
+      <li><a data-section="qos"><span class="icon">&#9733;</span> QoS</a></li>
+      <li><a data-section="dhcp"><span class="icon">&#128203;</span> DHCP</a></li>
+      <li><a data-section="snmp"><span class="icon">&#128196;</span> SNMP / Syslog / NTP</a></li>
+      <li><a data-section="bfd"><span class="icon">&#9829;</span> BFD</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">Platform</li>
+      <li><a data-section="interface"><span class="icon">&#128268;</span> Interface / IP</a></li>
+      <li><a data-section="nxos"><span class="icon">&#9670;</span> NX-OS / vPC</a></li>
+      <li><a data-section="mgmt"><span class="icon">&#9874;</span> Device Mgmt</a></li>
+      <li><a data-section="security"><span class="icon">&#128737;</span> Security / AAA</a></li>
+      <li style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#049fd9;border-top:1px solid var(--border);margin-top:4px;">Troubleshooting</li>
+      <li><a data-section="pingtrace"><span class="icon">&#128225;</span> Ping / Traceroute</a></li>
+      <li><a data-section="debug"><span class="icon">&#128270;</span> Debug Komutlari</a></li>
+      <li><a data-section="span"><span class="icon">&#128268;</span> SPAN / Monitor</a></li>
+      <li><a data-section="scenarios"><span class="icon">&#9888;</span> Sorun Senaryolari</a></li>
+      <li><a data-section="github"><span class="icon">&#9095;</span> Kaynaklar</a></li>
+    </ul>
+  </aside>
+  <main id="main">
+    <section class="section active" id="dashboard"></section>
+    <section class="section" id="commands"></section>
+    <section class="section" id="bgp"></section>
+    <section class="section" id="ospf"></section>
+    <section class="section" id="eigrp"></section>
+    <section class="section" id="static"></section>
+    <section class="section" id="routemap"></section>
+    <section class="section" id="vlan"></section>
+    <section class="section" id="stp"></section>
+    <section class="section" id="etherchannel"></section>
+    <section class="section" id="hsrp"></section>
+    <section class="section" id="ipsec"></section>
+    <section class="section" id="mpls"></section>
+    <section class="section" id="acl"></section>
+    <section class="section" id="nat"></section>
+    <section class="section" id="qos"></section>
+    <section class="section" id="dhcp"></section>
+    <section class="section" id="snmp"></section>
+    <section class="section" id="bfd"></section>
+    <section class="section" id="interface"></section>
+    <section class="section" id="nxos"></section>
+    <section class="section" id="mgmt"></section>
+    <section class="section" id="security"></section>
+    <section class="section" id="pingtrace"></section>
+    <section class="section" id="debug"></section>
+    <section class="section" id="span"></section>
+    <section class="section" id="scenarios"></section>
+    <section class="section" id="github"></section>
+  </main>
+  <div id="toast">Kopyalandi</div>
+  <script src="app.js"></script>
+</body>
+</html>
