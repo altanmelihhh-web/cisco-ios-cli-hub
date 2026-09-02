@@ -12,8 +12,9 @@ it, so it hands you something runnable instead of a page to skim.
 
 | | |
 |---|---|
-| Entries | 925 |
+| Commands | 873 |
 | Categories | 34 |
+| Scenarios | 10 |
 | Dependencies | none — single page, entirely client-side |
 | Network calls | none |
 

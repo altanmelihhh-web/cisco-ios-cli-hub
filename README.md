@@ -13,8 +13,9 @@ doğrudan çalıştırılabilir olanı verir.
 
 | | |
 |---|---|
-| Kayıt | 925 |
+| Komut | 873 |
 | Kategori | 34 |
+| Senaryo | 10 |
 | Bağımlılık | yok — tek sayfa, tamamen istemci tarafında |
 | Ağ çağrısı | yok |
 
