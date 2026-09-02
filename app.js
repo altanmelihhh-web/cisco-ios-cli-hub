@@ -4,6 +4,19 @@
    800+ Commands · 25+ Categories · Troubleshooting Scenarios
    ═══════════════════════════════════════════════════════════════ */
 
+// Multi-term search: every whitespace-separated term must appear somewhere in
+// the entry's command, description or category. A single term behaves exactly
+// as before, so "ssl" is unchanged, while "ssl profile" now matches
+// "list ltm profile client-ssl" — previously it matched nothing, because the
+// whole query had to occur as one contiguous substring.
+function matchesQuery(item, query) {
+  var hay = ((item.code || "") + " " + (item.desc || "") + " " + (item.cat || "")).toLowerCase();
+  var terms = String(query == null ? "" : query).toLowerCase().split(/\s+/).filter(Boolean);
+  if (!terms.length) return false;
+  for (var i = 0; i < terms.length; i++) if (hay.indexOf(terms[i]) === -1) return false;
+  return true;
+}
+
 const COMMANDS = [
 
   // ═══════════════════════════════════════════════════════════
@@ -3067,7 +3080,7 @@ function renderCommands() {
   let activeCat = "Tumu";
   function renderTable(filter) {
     let cmds = activeCat === "Tumu" ? COMMANDS : COMMANDS.filter(c => c.cat === activeCat);
-    if (filter) { const f = filter.toLowerCase(); cmds = cmds.filter(c => c.code.toLowerCase().includes(f) || c.desc.toLowerCase().includes(f) || c.cat.toLowerCase().includes(f)); }
+    if (filter) { const f = filter.toLowerCase(); cmds = cmds.filter(c => matchesQuery(c, f)); }
     const wrap = document.getElementById("cmd-table-wrap");
     if (!cmds.length) { wrap.innerHTML = `<p class="muted">Sonuc bulunamadi.</p>`; return; }
     wrap.innerHTML = `<table class="filter-table"><thead><tr><th style="width:30px"></th><th>Komut</th><th>Aciklama</th><th>Kategori</th></tr></thead><tbody>` +
@@ -3112,7 +3125,7 @@ function renderGithub() {
 function handleSearch(query) {
   if (!query || query.length < 2) { const last = localStorage.getItem("cisco-section") || "dashboard"; showSection(last); return; }
   const q = query.toLowerCase();
-  const results = COMMANDS.filter(c => c.code.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q));
+  const results = COMMANDS.filter(c => matchesQuery(c, q));
   showSection("dashboard");
   const el = document.getElementById("dashboard");
   if (!results.length) { el.innerHTML = `<div class="section-header"><h2>Arama: "${escHtml(query)}"</h2><div class="description">Sonuc bulunamadi.</div></div>`; return; }
