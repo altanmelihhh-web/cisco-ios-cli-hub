@@ -287,7 +287,7 @@ const COMMANDS = [
   { cat: "STP", code: "errdisable recovery cause all", desc: "TUM err-disable sebepleri icin otomatik recovery etkinlestir. Dikkat: sorunun kokenini cozmeden recovery sorun tekrarlar", sev: "w" },
   { cat: "STP", code: "errdisable recovery cause udld", desc: "UDLD kaynakli err-disable icin otomatik recovery. UDLD aggressive mode'da unidirectional link algilanirsa port err-disable olur", sev: "i" },
   { cat: "STP", code: "errdisable recovery cause psecure-violation", desc: "Port-security violation kaynakli err-disable icin otomatik recovery", sev: "i" },
-  { cat: "STP", code: "errdisable recovery cause storm-control", desc: "Storm-control kaynakli err-disable icin otomatik recovery. Broadcast/multicast storm durumunda", sev: "i" },
+  { cat: "STP", code: "errdisable recovery cause storm-control", desc: "Storm-control kaynakli err-disable (storm-control action shutdown) icin otomatik recovery; interval sonunda (varsayilan 300 sn) port acilir, firtina suruyorsa yeniden kapanir. Not: errdisable detect cause listesinde storm-control yoktur; tespit action shutdown ile ortuktur", sev: "i" },
   { cat: "STP", code: "errdisable recovery cause dhcp-rate-limit", desc: "DHCP snooping rate-limit kaynakli err-disable icin otomatik recovery", sev: "i" },
   { cat: "STP", code: "errdisable recovery cause arp-inspection", desc: "Dynamic ARP Inspection kaynakli err-disable icin otomatik recovery", sev: "i" },
   { cat: "STP", code: "errdisable recovery cause link-flap", desc: "Link-flap kaynakli err-disable icin otomatik recovery. Port surekli up/down olursa tetiklenir", sev: "i" },
@@ -556,7 +556,7 @@ const COMMANDS = [
   // --- Policy Map ---
   { cat: "QoS", code: "policy-map <name>", desc: "Policy-map olustur: QoS politikasi. Class-map'ler ile siniflandirilan trafige aksiyon uygular", sev: "i" },
   { cat: "QoS", code: "class <class-map-name>", desc: "Policy-map icinde class-map referans et. Her class icin farkli aksiyon tanimlanir", sev: "i" },
-  { cat: "QoS", code: "class class-default", desc: "Policy-map icinde default class. Hicbir class-map ile eslesmeyen trafik buraya duser", sev: "i" },
+  { cat: "QoS", code: "class class-default", desc: "Policy-map icinde varsayilan sinif: hicbir class-map ile eslesmeyen trafik buraya duser (router cikista genellikle fair-queue; Catalyst girisinde set dscp 0 ile eslesmeyen trafikteki sahte isaretleri siler). class-default'ta priority kullanilamaz", sev: "i" },
 
   // --- QoS Actions ---
   { cat: "QoS", code: "set dscp ef", desc: "Policy-map class icinde: DSCP degerini ayarla (mark). ef=46, af11=10, af21=18, cs3=24, default=0. Trafik isaretleme", sev: "i" },
@@ -564,12 +564,14 @@ const COMMANDS = [
   { cat: "QoS", code: "set ip precedence <0-7>", desc: "Policy-map class icinde: IP Precedence degerini ayarla. Eski ToS bazli isaretleme", sev: "i" },
   { cat: "QoS", code: "set ip dscp <value>", desc: "Policy-map class icinde: IP DSCP degerini ayarla. Numerik (0-63) veya isimli (ef, af31, cs5)", sev: "i" },
   { cat: "QoS", code: "bandwidth <kbps>", desc: "Policy-map class icinde: minimum bant genisligi garanti et (CBWFQ). kbps veya percent ile. Kuyruk icin ayrilan bant", sev: "i" },
-  { cat: "QoS", code: "bandwidth percent <1-100>", desc: "Policy-map class icinde: yuzde olarak minimum bant genisligi garantisi", sev: "i" },
+  { cat: "QoS", code: "interface GigabitEthernet0/1\n bandwidth <kbps>", desc: "Arayuz: hat hizini kbps olarak bildir (ornek 10 Mb/s hat icin 10000). MQC yuzdeleri (priority/bandwidth percent) bu degerden kbps'e cevrilir; komut yoksa fiziksel hiz (gigabit = 1000000) kullanilir ve yuzdeler gercek hattan cok buyuk olur. Fiziksel hizi degistirmez, yalniz QoS/routing hesaplarini etkiler", sev: "i" },
+  { cat: "QoS", code: "interface GigabitEthernet0/1\n max-reserved-bandwidth <percent>", desc: "Arayuz: priority + bandwidth siniflarinin toplam payi icin ust sinir. Varsayilan %75 (kalan %25 siniflandirilmamis ve routing trafigi icin). Toplam bu degeri asan politika service-policy output ile baglanirken reddedilir. Yalniz ana arayuzde", sev: "i" },
+  { cat: "QoS", code: "bandwidth percent <1-100>", desc: "Policy-map class icinde: tikanikliga karsi yuzde olarak minimum bant garantisi (CBWFQ; ust sinir degil). Yuzde arayuz bandwidth degerinden hesaplanir. priority + bandwidth toplami varsayilan %75'i asamaz (asan politika arayuze baglanirken reddedilir). Yalniz output; Catalyst erisimde yok", sev: "i" },
   { cat: "QoS", code: "bandwidth remaining percent <1-100>", desc: "Policy-map class icinde: kalan bant genisliginin yuzde kaçi bu class'a. Diger class'lar dolduktan sonra", sev: "i" },
   { cat: "QoS", code: "priority <kbps>", desc: "Policy-map class icinde: LLQ (Low Latency Queuing). Ses/video icin strict priority kuyrugu. Garanti + dusuk gecikme", sev: "i" },
-  { cat: "QoS", code: "priority percent <1-100>", desc: "Policy-map class icinde: yuzde olarak LLQ priority. Voice icin genellikle %10-33 ayrılir", sev: "i" },
+  { cat: "QoS", code: "priority percent <1-100>", desc: "Policy-map class icinde: yuzde olarak LLQ priority (router, yalniz output). Yuzde arayuzun bandwidth degerinden kbps'e cevrilir (arayuzde bandwidth yoksa fiziksel hiz). Tikanikliga kadar sinirsiz, tikaniklikta N% ile sinirlanir. priority + bandwidth toplami <= %75 (max-reserved-bandwidth). Catalyst erisim switch'inde sinif modunda yoktur", sev: "i" },
   { cat: "QoS", code: "queue-limit <packets>", desc: "Policy-map class icinde: kuyruk derinligi (max paket sayisi). Dolunca tail-drop", sev: "i" },
-  { cat: "QoS", code: "fair-queue", desc: "Policy-map class icinde: WFQ (Weighted Fair Queuing) etkinlestir. Flow bazli adil kuyruk", sev: "i" },
+  { cat: "QoS", code: "fair-queue", desc: "Policy-map class icinde (genellikle class class-default): akis bazli adil kuyruk (flow-based fair queueing). show policy-map interface'te 'Fair-queue: per-flow queue limit 16' gorunur. priority sinifinda kullanilmaz", sev: "i" },
   { cat: "QoS", code: "random-detect", desc: "Policy-map class icinde: WRED (Weighted Random Early Detection) etkinlestir. Kuyruk dolmadan paket dusurur, TCP global sync onler", sev: "i" },
   { cat: "QoS", code: "random-detect dscp-based", desc: "WRED DSCP bazli: farkli DSCP degerleri icin farkli drop threshold'lari. AF class'lari icin ideal", sev: "i" },
 
@@ -585,19 +587,21 @@ const COMMANDS = [
   { cat: "QoS", code: "shape peak <bps>", desc: "Peak rate shaping: Bc + Be burst ile daha yuksek gecici hiz izni. shape average daha yaygin", sev: "i" },
 
   // --- Apply QoS ---
-  { cat: "QoS", code: "interface GigabitEthernet0/0\n service-policy input <policy-name>", desc: "Policy-map'i interface'e giris yonunde uygula. Siniflandirma ve policing genellikle input'ta uygulanir", sev: "i" },
-  { cat: "QoS", code: "interface GigabitEthernet0/0\n service-policy output <policy-name>", desc: "Policy-map'i interface'e cikis yonunde uygula. Shaping ve queuing genellikle output'ta uygulanir", sev: "i" },
+  { cat: "QoS", code: "interface GigabitEthernet0/0\n service-policy input <policy-name>", desc: "Policy-map'i interface'e giris yonunde uygula. Catalyst erisim switch'inde yalniz input desteklenir (class-map, set dscp, police). Routerda priority/bandwidth iceren politika input ile baglanamaz: 'CBWFQ : Can be enabled as an output feature only'. mls qos trust ile ayni port: son yazilan oncekini ezer", sev: "i" },
+  { cat: "QoS", code: "interface GigabitEthernet0/0\n service-policy output <policy-name>", desc: "Policy-map'i interface'e cikis yonunde uygula. Shaping ve queuing (priority/bandwidth/fair-queue, LLQ) router output'ta uygulanir; Catalyst erisim switch'i cikista policy-map desteklemez ('Warning: Assigning a policy map to the output side of an interface not supported', cikis kuyrugu srr-queue ile)", sev: "i" },
 
   // --- QoS Show ---
   { cat: "QoS", code: "show policy-map", desc: "Tum policy-map konfigurasyonlari: class'lar, aksiyonlar, policing/shaping parametreleri", sev: "i" },
-  { cat: "QoS", code: "show policy-map interface <interface>", desc: "Interface'e uygulanan QoS istatistikleri: her class icin paket/byte sayisi, drop, police conform/exceed/violate", sev: "i" },
+  { cat: "QoS", code: "show policy-map interface <interface>", desc: "Interface'e uygulanan QoS istatistikleri: her class icin paket/byte sayisi, offered/drop rate, police conform/exceed/violate; LLQ'da 'Priority: N% (X kbps) ... b/w exceed drops'. Catalyst'te sayaclar guvenilmez sayilir (Cisco: gosterilen istatistikler yok sayilmali); orada show policy-map + show mls qos interface kullanin", sev: "i" },
   { cat: "QoS", code: "show policy-map interface <interface> input", desc: "Sadece input yonu policy istatistikleri", sev: "i" },
-  { cat: "QoS", code: "show policy-map interface <interface> output", desc: "Sadece output yonu policy istatistikleri: queue depth, tail drops, shaped rate", sev: "i" },
+  { cat: "QoS", code: "show policy-map interface <interface> output", desc: "Sadece output yonu policy istatistikleri (router): queue depth, tail drops, priority sinifinda 'b/w exceed drops', bandwidth sinifi garantisi, class-default fair-queue. Ses (priority) sinifinda drop 0 olmali; yedekleme sinifi dusebilir", sev: "i" },
   { cat: "QoS", code: "show class-map", desc: "Tum class-map konfigurasyonlari: match kriterleri, match-any/match-all", sev: "i" },
   { cat: "QoS", code: "show mls qos", desc: "Global QoS durumu (Catalyst switch). Enabled/disabled ve trust boundary bilgisi", sev: "i" },
-  { cat: "QoS", code: "mls qos", desc: "Global QoS'u etkinlestir (Catalyst 3560/3750). Etkinlestirilmezse QoS config'leri calismaz!", sev: "i" },
-  { cat: "QoS", code: "mls qos trust dscp", desc: "Interface uzerinde DSCP trust. Gelen paketlerin DSCP degerine guven, yeniden yazma", sev: "i" },
+  { cat: "QoS", code: "mls qos", desc: "Global QoS'u etkinlestir (Catalyst 2960/3560/3750). Kapaliyken QoS pass-through: trust ve policy-map komutlari kabul edilir ama etkisizdir, PC'nin kendi DSCP/CoS isareti oldugu gibi gecer. Acilinca varsayilan port durumu guvensiz (untrusted): DSCP ve CoS 0'a cekilir", sev: "i" },
+  { cat: "QoS", code: "mls qos trust dscp", desc: "Interface uzerinde DSCP trust. Gelen paketlerin DSCP degerine guven, yeniden yazma. Uplink (router tarafi) icin uygundur; PC/erisim portuna verilmez (kullanici kendini EF isaretleyip oncelikli kuyrugu tuketebilir)", sev: "i" },
   { cat: "QoS", code: "mls qos trust cos", desc: "Interface uzerinde CoS trust. Trunk port'larda gelen CoS degerine guven", sev: "i" },
+  { cat: "QoS", code: "mls qos trust device cisco-phone", desc: "Interface: yalniz Cisco IP telefon algilanirsa (CDP ile) trust acilir, algilanmazsa kapanir (trusted boundary). Telefon portunda mls qos trust cos ile birlikte yazilir (SCG prosedur); CDP global ve portta acik olmali (cdp run). PC portuna guven verilmez", sev: "i" },
+  { cat: "QoS", code: "show mls qos interface <interface>", desc: "Interface QoS durumu (Catalyst): trust state/mode, default CoS, trust device (none/cisco-phone). Global mls qos kapaliysa 'QoS is disabled. When QoS is enabled, following settings will be applied' basligi gelir. Politika sayaclari icin show policy-map interface Catalyst'te guvenilir degildir; mls qos interface <if> statistics/policers kullanilir", sev: "i" },
   { cat: "QoS", code: "show auto qos", desc: "Auto-QoS konfigurasyonu ve durumu. auto qos voip komutu ile otomatik QoS sablonu uygulanir", sev: "i" },
 
   // ═════════════════════════════════════════════════════════════
@@ -1039,10 +1043,11 @@ const COMMANDS = [
   // ═══════════════════════════════════════════════════════════
   // STORM CONTROL / DAI / IP SOURCE GUARD
   // ═══════════════════════════════════════════════════════════
-  { cat: "Storm Control", code: "storm-control broadcast level 20.00 10.00", desc: "Broadcast storm koruma: %20 esik asildinda trafik durdur, %10'a dusunce tekrar ac. Interface altinda", sev: "i" },
+  { cat: "Storm Control", code: "storm-control broadcast level 1.00 0.50", desc: "Broadcast storm koruma: yuzde birimi (hat hizindan bagimsiz, iki ondalik). Ilk deger rising: asildiginda filtre baslar; ikinci deger falling: altina inene kadar filtre surer, sonra trafik yeniden acilir (falling verilmezse rising ile ayni). 1 Gb/s erisim portu icin %1.00/%0.50 makul; %20 cok gevsek. Birim bps/pps de olabilir (level bps 1m / level pps 1k). Interface altinda", sev: "i" },
   { cat: "Storm Control", code: "storm-control multicast level 20.00", desc: "Multicast storm koruma. Esik asildinda multicast trafik engellenir", sev: "i" },
-  { cat: "Storm Control", code: "storm-control action shutdown", desc: "Esik asilirsa portu err-disable yap. Default: sadece filtre/drop. shutdown = daha agresif", sev: "w" },
+  { cat: "Storm Control", code: "storm-control action shutdown", desc: "Esik asilirsa portu err-disable yap (kurtarma: shutdown/no shutdown ya da errdisable recovery cause storm-control). action yazilmazsa varsayilan: yalniz filtre (fazla trafik dusurulur, trap yok, port acik). storm-control action trap: filtre + SNMP trap. Uplinke shutdown konmaz: err-disable tum erisimi koparir", sev: "w" },
   { cat: "Storm Control", code: "show storm-control", desc: "Storm control durumu: trafik tipi, esik, aksiyon, mevcut seviye", sev: "i" },
+  { cat: "Storm Control", code: "show storm-control <interface> [broadcast|multicast|unicast]", desc: "Port bazli storm-control tablosu: Filter State (Forwarding/Blocking/inactive), Trap State, Upper (rising), Lower (falling), Current, Traps Sent. Tur verilmezse yalniz broadcast gosterilir. Blocking = esik asildi, filtre devrede; inactive ve 100.00% = esik ayarli degil", sev: "i" },
   { cat: "DAI", code: "ip arp inspection vlan <vlan-range>", desc: "DAI (Dynamic ARP Inspection) etkinlestir. ARP spoofing korunmasi. DHCP snooping binding DB'ye dayanir: statik IP'li cihazin ARP'i, ARP ACL (ip arp inspection filter) ya da ip source binding olmadan DUSER. Uplink'e ip arp inspection trust yazin", sev: "i" },
   { cat: "DAI", code: "ip arp inspection trust", desc: "Interface'i DAI trusted yap. Uplink portlarda kullanin. Untrusted portlarda ARP dogrulanir", sev: "i" },
   { cat: "DAI", code: "show ip arp inspection", desc: "DAI durumu ve istatistikleri: forwarded/dropped ARP sayilari. Dropped yuksekse ARP sorunu var", sev: "i" },
