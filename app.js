@@ -70,7 +70,7 @@ const COMMANDS = [
   // ─── BGP — DEBUG ───
   { cat: "BGP", code: "debug ip bgp", desc: "Genel BGP debug: tum BGP olaylari. Cok yogun cikti uretir — production'da DIKKATLI kullanin! Belirli neighbor icin: debug ip bgp <ip>", sev: "e" },
   { cat: "BGP", code: "debug ip bgp <ip> updates", desc: "Belirli neighbor icin UPDATE mesajlarini debug et. Ornek cikti: 'BGP(0): 10.1.1.2 rcvd UPDATE w/ attr: nexthop 10.1.1.2, origin i, localpref 100, metric 0, path 65001' ve 'BGP(0): 10.1.1.2 rcvd 192.168.1.0/24'. Route alinimi/gonderimini izlemek icin", sev: "e" },
-  { cat: "BGP", code: "debug ip bgp updates", desc: "TUM neighbor'lar icin UPDATE debug. Her gelen/giden UPDATE mesajini gosterir. Ornek: 'BGP(0): 10.0.0.1 send UPDATE (format) 172.16.0.0/16, next 10.0.0.2, metric 0, path 65002'. Yogun trafik ortaminda CPU tehlikesi!", sev: "e" },
+  { cat: "BGP", code: "debug ip bgp updates", desc: "TUM neighbor'lar icin UPDATE debug. Her gelen/giden UPDATE mesajini gosterir. Ornek: 'BGP(0): 10.0.0.1 send UPDATE (format) 172.24.0.0/16, next 10.0.0.2, metric 0, path 65002'. Yogun trafik ortaminda CPU tehlikesi!", sev: "e" },
   { cat: "BGP", code: "debug ip bgp keepalives", desc: "BGP keepalive mesajlarini debug et. Default: her 60 sn bir keepalive gonderilir. Ornek cikti: 'BGP: 10.1.1.2 sending KEEPALIVE' ve 'BGP: 10.1.1.2 received KEEPALIVE'. Hold timer expired sorunlarinda kullanin", sev: "e" },
   { cat: "BGP", code: "debug ip bgp events", desc: "BGP olay debug: state transition'lar, session kurulma/kapanma olaylari. Ornek: 'BGP: 10.1.1.2 went from Idle to Connect' veya 'BGP: 10.1.1.2 went from OpenSent to Established'. FSM sorunlari icin", sev: "e" },
   { cat: "BGP", code: "debug ip bgp notifications", desc: "BGP NOTIFICATION mesajlarini debug et. Session kapanma sebeplerini gosterir. Ornek: '%BGP-3-NOTIFICATION: sent to neighbor 10.1.1.2 4/0 (hold time expired) 0 bytes'. Error Code/Subcode gosterir", sev: "e" },
@@ -396,6 +396,10 @@ const COMMANDS = [
   { cat: "DHCP Snooping", code: "ip dhcp snooping trust", desc: "Interface'i trust yap (uplink/trunk portlari). Trust olmayan portlardan gelen DHCP server mesajlari (OFFER/ACK) ENGELLENIR", sev: "i" },
   { cat: "DHCP Snooping", code: "show ip dhcp snooping", desc: "DHCP snooping durumu: etkin mi, hangi VLAN'lar, trust portlar", sev: "i" },
   { cat: "DHCP Snooping", code: "show ip dhcp snooping binding", desc: "DHCP snooping binding tablosu: MAC, IP, Lease, VLAN, Interface. DAI ve IP Source Guard bu tabloyu kullanir", sev: "i" },
+  { cat: "DHCP Snooping", code: "no ip dhcp snooping information option", desc: "Global: snooping switch'inin option-82 eklemesini kapatir (varsayilan acik). Relay'siz kurulumda / ayni VLAN'daki IOS DHCP sunucusunda SART: giaddr bos + option-82'li DISCOVER sunucu/relay tarafindan atilir, istemciler IP alamaz (show ip dhcp snooping statistics -> sunucu yanit vermiyor)", sev: "w" },
+  { cat: "DHCP Snooping", code: "ip dhcp snooping limit rate <pps>", desc: "Arayuz: guvenilmeyen portta saniyedeki DHCP paket siniri (1-2048, varsayilan sinirsiz; <=100 pps onerilir). Asilinca port err-disable (dhcp-rate-limit) -> errdisable recovery cause dhcp-rate-limit. Uplink/trunk'a dusuk sinir koymayin: tum VLAN'larin DHCP'si oradan gecer, kat kesilir", sev: "w" },
+  { cat: "DHCP Snooping", code: "ip source binding <mac> vlan <vlan> <ip> interface <intf>", desc: "GLOBAL config: statik IP'li cihaz (yazici, sunucu) icin kalici binding; show ip source binding'de Type static, lease infinite. IPSG ve DAI bu girdiyi kullanir. 'ip dhcp snooping binding ...' ise EXEC komutudur, config'e yazilmaz ve reload'da kaybolur", sev: "i" },
+  { cat: "DHCP Snooping", code: "show ip source binding", desc: "IPSG/DAI'nin kullandigi binding tablosu: DHCP snooping (dhcp-snooping) + statik (static, lease infinite) girdiler", sev: "i" },
 
 
 
@@ -435,7 +439,7 @@ const COMMANDS = [
   { cat: "IPsec VPN", code: "interface GigabitEthernet0/0\n crypto map <name>", desc: "Crypto map'i WAN interface'ine uygula. Bu interface'den gecen interesting traffic sifrelenir", sev: "i" },
 
   // --- IPsec ACL ---
-  { cat: "IPsec VPN", code: "ip access-list extended VPN-TRAFFIC\n permit ip 192.168.1.0 0.0.0.255 10.10.10.0 0.0.0.255", desc: "VPN interesting traffic ACL. Bu ACL'deki trafik IPsec tunelden gider. Wildcard mask kullanilir (subnet mask degil!)", sev: "i" },
+  { cat: "IPsec VPN", code: "ip access-list extended VPN-TRAFFIC\n permit ip 192.168.1.0 0.0.0.255 10.64.10.0 0.0.0.255", desc: "VPN interesting traffic ACL. Bu ACL'deki trafik IPsec tunelden gider. Wildcard mask kullanilir (subnet mask degil!)", sev: "i" },
 
   // --- GRE Tunnel ---
   { cat: "IPsec VPN", code: "interface Tunnel0", desc: "GRE tunnel interface'i olustur/gir. Tunnel numarasi yerel (0-2147483647). Logical interface", sev: "i" },
@@ -613,7 +617,9 @@ const COMMANDS = [
   { cat: "SNMP/Syslog/NTP", code: "snmp-server location <text>", desc: "Cihaz fiziksel konumu (sysLocation OID). NMS'te gorunen konum bilgisi: 'Istanbul DC Rack-5'", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "snmp-server contact <text>", desc: "Cihaz sorumlusu iletisim bilgisi (sysContact OID). 'NOC - noc@company.com'", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "snmp-server chassis-id <text>", desc: "Cihaz chassis tanimlayicisi. Envanter yonetimi icin", sev: "i" },
-  { cat: "SNMP/Syslog/NTP", code: "snmp-server group <name> v3 priv", desc: "SNMPv3 grup olustur. priv = authentication + encryption. auth = sadece authentication. noauth = yok", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "snmp-server group <name> v3 priv", desc: "SNMPv3 grup olustur. priv = authentication + encryption. auth = sadece authentication. noauth = yok. Gercek kullanim: read <view> + access <acl> ile (asagidaki satir)", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "snmp-server group <name> v3 priv read <view> access <acl>", desc: "SNMPv3 sirasi: 1) snmp-server view V iso included 2) bu grup satiri (read V, standart ACL ile tek NMS) 3) snmp-server user U G v3 auth sha .. priv aes 128 .. 4) snmp-server host A version 3 priv U. v3 kullanicilari show run'da GORUNMEZ -> show snmp user", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "snmp-server host <ip> version 3 priv <username>", desc: "SNMPv3 trap hedefi, authPriv (sifreli). Trap turleri snmp-server enable traps ... ile secilir", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "snmp-server user <name> <group> v3 auth sha <auth-pass> priv aes 128 <priv-pass>", desc: "SNMPv3 kullanici olustur. SHA auth + AES-128 encryption. En guvenli SNMP yontemi", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "snmp-server view <name> iso included", desc: "SNMP view olustur: hangi MIB OID'lere erisim izni verilecek. iso = tum MIB tree. Kisitlama icin belirli OID kullanin", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "snmp-server ifindex persist", desc: "Interface ifIndex degerlerini kalici yap. Reboot sonrasi ifIndex degismez. SNMP monitoring tutarliligi icin", sev: "i" },
@@ -675,7 +681,7 @@ const COMMANDS = [
   { cat: "DHCP", code: "ip dhcp excluded-address <start-ip> [end-ip]", desc: "DHCP'den haric tutulan IP araligi. Gateway, sunucu, printer gibi statik IP'li cihazlar icin. Pool olusturmadan ONCE tanimlayin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <single-ip>", desc: "Tek IP'yi DHCP'den haric tut. Genellikle default gateway IP'si haric tutulur", sev: "i" },
   { cat: "DHCP", code: "ip helper-address <dhcp-server-ip>", desc: "Interface altinda: DHCP relay. Bu subnet'teki DHCP broadcast'leri belirtilen sunucuya unicast olarak iletilir. Farkli subnet'teki DHCP sunucu icin SART", sev: "i" },
-  { cat: "DHCP", code: "ip dhcp relay information option", desc: "DHCP Option 82 (relay agent info) ekle. DHCP snooping ile birlikte kullanilir. Hangi port/VLAN'dan geldigi bilgisi", sev: "i" },
+  { cat: "DHCP", code: "ip dhcp relay information option", desc: "RELAY (SVI / L3 arayuz, ip helper-address yapan cihaz) tarafinin komutu: relay ajani Option 82 ekler. DHCP snooping'in option-82'siyle karistirmayin: snooping yapan L2 switch option-82'yi zaten VARSAYILAN olarak ekler (ip dhcp snooping information option). Relay'siz / ayni VLAN'daki IOS DHCP sunucusu giaddr bos + option-82 iceren paketi atar -> snooping switch'inde 'no ip dhcp snooping information option'", sev: "i" },
   { cat: "DHCP", code: "ip dhcp snooping", desc: "DHCP Snooping'i global olarak etkinlestir. Rogue DHCP sunucu saldirisini onler. Layer 2 guvenlik", sev: "i" },
   { cat: "DHCP", code: "ip dhcp snooping vlan <vlan-id>", desc: "Belirli VLAN'da DHCP snooping etkinlestir", sev: "i" },
   { cat: "DHCP", code: "ip dhcp snooping trust", desc: "Interface altinda: bu portu trusted yap. DHCP sunucusunun bagli oldugu port. Trusted olmayan portlardan DHCP offer dusurulur", sev: "i" },
@@ -882,6 +888,7 @@ const COMMANDS = [
   { cat: "Device Mgmt", code: "time-period <minutes>", desc: "Archive icinde: belirli aralikla otomatik yedek al (dakika)", sev: "i" },
   { cat: "Device Mgmt", code: "maximum <count>", desc: "Archive icinde: maksimum yedek sayisi. Eski yedekler otomatik silinir", sev: "i" },
   { cat: "Device Mgmt", code: "log config", desc: "Archive icinde: konfigrasyon degisiklik loglama. Kim, ne, ne zaman degistirdi", sev: "i" },
+  { cat: "Device Mgmt", code: "configure replace flash:<file>", desc: "Running config'i dosyadaki ile TAMAMEN degistirir (rollback). copy flash:<file> running-config ise BIRLESTIRIR: dosyada olmayan satirlar silinmez. Once yedek: copy running-config flash:<file>", sev: "e" },
   { cat: "Device Mgmt", code: "show archive", desc: "Archive yedek listesi: dosya adi, tarih. Onceki konfigrasyon versiyonlari", sev: "i" },
   { cat: "Device Mgmt", code: "show archive log config all", desc: "Konfigrasyon degisiklik gecmisi: tarih, kullanici, komut. Audit trail. Kim ne degistirmis?", sev: "i" },
   { cat: "Device Mgmt", code: "kron occurrence <name> at <hh:mm> <day> <month> recurring", desc: "Kron: zamanlanmis gorev olustur. Belirli tarih/saatte komut calistir. NX-OS'ta 'scheduler' karsiligi", sev: "i" },
@@ -1036,9 +1043,20 @@ const COMMANDS = [
   { cat: "Storm Control", code: "storm-control multicast level 20.00", desc: "Multicast storm koruma. Esik asildinda multicast trafik engellenir", sev: "i" },
   { cat: "Storm Control", code: "storm-control action shutdown", desc: "Esik asilirsa portu err-disable yap. Default: sadece filtre/drop. shutdown = daha agresif", sev: "w" },
   { cat: "Storm Control", code: "show storm-control", desc: "Storm control durumu: trafik tipi, esik, aksiyon, mevcut seviye", sev: "i" },
-  { cat: "DAI", code: "ip arp inspection vlan <vlan-range>", desc: "DAI (Dynamic ARP Inspection) etkinlestir. ARP spoofing korunmasi. DHCP snooping binding DB'ye dayanir", sev: "i" },
+  { cat: "DAI", code: "ip arp inspection vlan <vlan-range>", desc: "DAI (Dynamic ARP Inspection) etkinlestir. ARP spoofing korunmasi. DHCP snooping binding DB'ye dayanir: statik IP'li cihazin ARP'i, ARP ACL (ip arp inspection filter) ya da ip source binding olmadan DUSER. Uplink'e ip arp inspection trust yazin", sev: "i" },
   { cat: "DAI", code: "ip arp inspection trust", desc: "Interface'i DAI trusted yap. Uplink portlarda kullanin. Untrusted portlarda ARP dogrulanir", sev: "i" },
   { cat: "DAI", code: "show ip arp inspection", desc: "DAI durumu ve istatistikleri: forwarded/dropped ARP sayilari. Dropped yuksekse ARP sorunu var", sev: "i" },
+  { cat: "DAI", code: "ip arp inspection validate src-mac dst-mac ip", desc: "Ek denetimler TEK SATIRDA yazilmali: her validate komutu oncekini ezer. ip denetimi 0.0.0.0 kaynakli ARP probe'unu da dusurur; gerekiyorsa sona 'allow zeros' ekleyin", sev: "w" },
+  { cat: "DAI", code: "ip arp inspection limit rate <pps> burst interval <seconds>", desc: "Arayuz: ARP hiz siniri. Guvenilmeyen port varsayilani 15 pps; asilinca port err-disable (arp-inspection) -> errdisable recovery cause arp-inspection. Uplink/trust portta 'limit rate none' ya da yuksek deger", sev: "w" },
+  { cat: "DAI", code: "arp access-list <name>", desc: "Statik IP'li cihaz icin ARP ACL olusturur (alt mod). Icinde: permit ip host <ip> mac host <mac>", sev: "i" },
+  { cat: "DAI", code: "permit ip host <ip> mac host <mac>", desc: "arp access-list icinde: bu IP-MAC eslesmesinin ARP'ina izin ver", sev: "i" },
+  { cat: "DAI", code: "ip arp inspection filter <acl> vlan <vlan-range> [static]", desc: "ARP ACL'i VLAN'a baglar; ACL binding tablosundan ONCE denenir. 'static' yalniz tamamen statik VLAN'da: ACL'de eslesmeyen ARP binding'e bakilmadan duser (DHCP istemcileri kesilir)", sev: "w" },
+  { cat: "DAI", code: "show ip arp inspection interfaces", desc: "Port bazinda trust durumu ve ARP hiz siniri (Rate pps / Burst Interval)", sev: "i" },
+  { cat: "DAI", code: "show ip arp inspection statistics vlan <vlan>", desc: "VLAN bazinda forwarded / dropped / DHCP drops / ACL drops / validation (src-mac, dst-mac, ip) sayaclari", sev: "i" },
+  { cat: "IP Source Guard", code: "ip verify source", desc: "Arayuz (IPSG): portta yalniz binding tablosundaki (DHCP snooping + statik ip source binding) kaynak IP'ye izin verir. Statik IP'li cihaz icin once ip source binding", sev: "w" },
+  { cat: "IP Source Guard", code: "ip verify source port-security", desc: "Arayuz (2960/3750): IP + MAC denetimi. Portta switchport port-security acik olmali", sev: "w" },
+  { cat: "IP Source Guard", code: "ip verify source mac-check", desc: "Arayuz (Cat9300 IOS-XE): IP + MAC denetimi; 2960/3750'deki 'port-security' anahtarinin karsiligi", sev: "w" },
+  { cat: "IP Source Guard", code: "show ip verify source", desc: "IPSG uygulanan portlar: filter-type (ip / ip-mac), filter-mode (active), izin verilen IP/MAC ve VLAN", sev: "i" },
 
   // ═══════════════════════════════════════════════════════════
   // MONITORING / SYSTEM / PoE
@@ -1292,7 +1310,7 @@ const CONFIG_GUIDES = {
       "!",
       "! 4. Interesting Traffic ACL",
       "ip access-list extended VPN_TRAFFIC",
-      " permit ip 192.168.1.0 0.0.0.255 10.10.10.0 0.0.0.255",
+      " permit ip 192.168.1.0 0.0.0.255 10.64.10.0 0.0.0.255",
       "!",
       "! 5. Crypto Map",
       "crypto map MY_VPN 10 ipsec-isakmp",
@@ -1439,13 +1457,16 @@ const CONFIG_GUIDES = {
   ],
   "snmp": [
     { title: "SNMPv2c Yapilandirma", steps: [
-      "snmp-server community public RO",
-      "snmp-server community private RW",
+      "ip access-list standard SNMP-NMS",
+      " permit host 10.1.1.50",
+      "snmp-server community <tahmin-edilemez-dize> RO SNMP-NMS",
+      "no snmp-server community public",
+      "no snmp-server community private",
       "snmp-server location Istanbul-DC-Rack5",
       "snmp-server contact noc@example.com",
-      "snmp-server host 10.1.1.50 version 2c public",
+      "snmp-server host 10.1.1.50 version 2c <tahmin-edilemez-dize>",
       "snmp-server enable traps",
-    ], note: "RO=read-only, RW=read-write. community string = sifre gibi, tahmin edilebilir olmamali! ACL ile kisitlayin: snmp-server community <str> RO <acl>" },
+    ], note: "Yalniz RO + ACL; RW vermeyin. public/private gibi tahmin edilebilir dizeler kaldirilmali (no snmp-server community ...). Community duz metindir: mumkunse SNMPv3 (authPriv) kullanin." },
     { title: "SNMPv3 Yapilandirma (Guvenli)", steps: [
       "snmp-server group SNMPV3_GRP v3 priv",
       "snmp-server user snmpv3user SNMPV3_GRP v3 auth sha AuthPass123 priv aes 128 PrivPass456",
@@ -2696,23 +2717,23 @@ const CONFIG_GUIDES = {
       "! BGP(0): 203.0.113.1 rcvd UPDATE w/ attr: nexthop 203.0.113.1, origin i",
       "!   -> UPDATE mesaji ALINDI (route geliyor)",
       "!",
-      "! BGP(0): 203.0.113.1 rcvd 10.10.0.0/16",
-      "!   -> 10.10.0.0/16 prefix'i ALINDI",
+      "! BGP(0): 203.0.113.1 rcvd 10.128.0.0/16",
+      "!   -> 10.128.0.0/16 prefix'i ALINDI",
       "!",
-      "! BGP(0): Revise route installing 10.10.0.0/16 -> 203.0.113.1",
+      "! BGP(0): Revise route installing 10.128.0.0/16 -> 203.0.113.1",
       "!   -> Route RIB'e YUKLENDI (basarili!)",
       "!",
       "! =====================================================",
       "! Route ESLENMIYOR / filtreleniyor:",
       "! =====================================================",
       "!",
-      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.10.0.0/16 -- DENIED due to: route-map",
+      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.128.0.0/16 -- DENIED due to: route-map",
       "!   -> Route-map ENGELLIYOR! Inbound route-map kontrol edin",
       "!",
-      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.10.0.0/16 -- DENIED due to: filter-list",
+      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.128.0.0/16 -- DENIED due to: filter-list",
       "!   -> AS-path filter-list ENGELLIYOR!",
       "!",
-      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.10.0.0/16 -- DENIED due to: prefix-list",
+      "! BGP(0): 203.0.113.1 rcvd UPDATE about 10.128.0.0/16 -- DENIED due to: prefix-list",
       "!   -> Prefix-list ENGELLIYOR!",
       "!",
       "! Hic UPDATE mesaji gelmiyorsa:",
@@ -2797,7 +2818,7 @@ const CONFIG_GUIDES = {
       "!   -> SORUN: Authentication key FARKLI",
       "!   -> COZUM: key chain ve ip authentication key-chain kontrol",
       "!",
-      "! %DUAL-3-SIA: Route 10.10.0.0/16 stuck-in-active state",
+      "! %DUAL-3-SIA: Route 10.128.0.0/16 stuck-in-active state",
       "!   -> SORUN: SIA — Query'e 3dk icerisinde yanit GELMEDI",
       "!   -> COZUM: stub konfigurasyonu, summarization, query boundary olustur",
       "!   -> SIA olan neighbor 3dk sonra DROP edilir!",
@@ -3164,7 +3185,7 @@ function init() {
   renderGenericSection("security", "Security / AAA / Port-Security", "Enable secret, username, SSH, AAA (RADIUS/TACACS+), port-security, uRPF, login block.", ["Security"]);
   renderGenericSection("pingtrace", "Ping / Traceroute / Connectivity", "Extended ping (source, size, df-bit, sweep, repeat), extended traceroute (source, TTL, port), VRF ping/trace, CEF kontrol.", ["Ping/Trace"]);
   renderGenericSection("debug", "Debug Komutlari", "Tum debug komutlari: IP, OSPF, BGP, EIGRP, IPsec, STP, HSRP, NAT, DHCP, MPLS, LACP. terminal monitor, undebug all.", ["Debug"]);
-  renderGenericSection("span", "SPAN / Monitor / Storm Control / DAI", "Port mirror (SPAN/RSPAN), storm control, Dynamic ARP Inspection, IP Source Guard, monitoring komutlari.", ["SPAN", "Storm Control", "DAI", "Monitoring", "VRF", "Multicast"]);
+  renderGenericSection("span", "SPAN / Monitor / Storm Control / DAI", "Port mirror (SPAN/RSPAN), storm control, Dynamic ARP Inspection, IP Source Guard, monitoring komutlari.", ["SPAN", "Storm Control", "DAI", "IP Source Guard", "Monitoring", "VRF", "Multicast"]);
   renderScenarios();
   renderGithub();
 
