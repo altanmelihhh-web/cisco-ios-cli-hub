@@ -892,6 +892,43 @@ const COMMANDS = [
   { cat: "NX-OS", code: "show diff rollback-patch checkpoint <name> running-config", desc: "NX-OS: checkpoint ile mevcut konfig arasindaki farklari goster. Rollback oncesi ne degisecegini gor", sev: "i" },
   { cat: "NX-OS", code: "run bash", desc: "NX-OS: Linux bash shell'e gec (feature bash-shell gerekli). Linux komutlari calilstir", sev: "i" },
 
+  // --- NX-OS VXLAN / EVPN (NVE) ---
+  // Sozdizimi: Nexus 9000 NX-OS VXLAN Configuration Guide 10.3(x) "Configuring VXLAN BGP EVPN";
+  // Ansible cisco.nxos (nxos_vxlan_vtep / nxos_vxlan_vtep_vni / nxos_evpn_global / nxos_evpn_vni);
+  // show cikti bicimleri: ntc-templates tests/cisco_nxos/show_nve_{vni,peers}.
+  { cat: "NX-OS", code: "feature nv overlay", desc: "NX-OS: Network Virtualization (VXLAN/NVE) feature'ini etkinlestir. Bu olmadan 'interface nve1' ve 'member vni' kabul edilmez", sev: "i" },
+  { cat: "NX-OS", code: "feature vn-segment-vlan-based", desc: "NX-OS: VLAN ile VNI esleme yetenegi. 'vlan <id> - vn-segment <vni>' komutunu acar. (Eski/N7K bicimi: 'feature vn-segment')", sev: "i" },
+  { cat: "NX-OS", code: "nv overlay evpn", desc: "NX-OS: EVPN kontrol duzlemi (global komut, feature degil). 'evpn' blogu ve BGP l2vpn evpn icin once bu yazilir", sev: "i" },
+  { cat: "NX-OS", code: "fabric forwarding anycast-gateway-mac 0000.2222.3333", desc: "NX-OS: dagitik anycast gecit MAC'i (noktali onaltilik). Fabric'teki TUM VTEP'lerde ayni olmali; SVI basina 'fabric forwarding mode anycast-gateway' ayrica yazilir", sev: "i" },
+  { cat: "NX-OS", code: "vlan <id>\n  vn-segment <vni>", desc: "NX-OS: VLAN'i L2 VNI'ye bagla (L2 VNI'nin tasindigi katman). VLAN numarasi yerel, VNI fabric genelinde ortaktir", sev: "i" },
+  { cat: "NX-OS", code: "interface nve1", desc: "NX-OS: NVE (VTEP) arayuzu. VXLAN tunelinin kaynagi; 'no shutdown' verilmeden VNI'lar UP olmaz", sev: "i" },
+  { cat: "NX-OS", code: "source-interface loopback1", desc: "NVE altinda: VXLAN tunelinin kaynak adresi. Loopback /32 olmali ve underlay IGP ile tum VTEP'lere duyurulmali; vPC ciftinde ikincil (anycast) IP de gerekir", sev: "i" },
+  { cat: "NX-OS", code: "host-reachability protocol bgp", desc: "NVE altinda: uzak MAC/IP ogrenmesini BGP EVPN kontrol duzlemiyle yap. Veri duzlemi ogrenmesi yerine standart VXLAN EVPN yontemi", sev: "i" },
+  { cat: "NX-OS", code: "member vni <vni>", desc: "NVE altinda: L2 VNI'yi VTEP'e ekle. VLAN'in 'vn-segment' degeri ile birebir ayni olmali; uyusmazlikta uzak MAC hic ogrenilmez", sev: "i" },
+  { cat: "NX-OS", code: "member vni <vni> associate-vrf", desc: "NVE altinda: L3 VNI'yi tenant VRF ile iliskilendir (simetrik IRB). L3 VNI tum VTEP'lerde ayni VRF icin ayni deger olmali", sev: "i" },
+  { cat: "NX-OS", code: "ingress-replication protocol bgp", desc: "NVE altinda: BGP tabanli (head-end) cogaltma. Underlay'de PIM/multicast gerektirmez; 'global ingress-replication protocol bgp' bicimi de gecerlidir", sev: "i" },
+  { cat: "NX-OS", code: "mcast-group 239.0.0.1", desc: "NVE altinda: VNI basina underlay multicast grubu (PIM gerekir). 'UnicastBGP' (ingress-replication) tasariminda bu satir kullanilmaz", sev: "i" },
+  { cat: "NX-OS", code: "suppress-arp", desc: "NVE altinda: ARP bastirma. Uzak hostlarin ARP istekleri overlay uzerinden cogaltilmaz; kontrol duzlemi ogrenmesi sarttir (yoksa sessiz kesinti)", sev: "i" },
+  { cat: "NX-OS", code: "evpn\n  vni <vni> l2\n    rd auto\n    route-target both auto", desc: "NX-OS: EVPN EVI (L2 VNI) blogu. 'auto' RD/RT yalniz iBGP tasariminda guvenlidir; eBGP'de RT'ler elle hizalanir", sev: "i" },
+  { cat: "NX-OS", code: "vrf context <ad>\n  vni <l3vni>\n  rd auto\n  address-family ipv4 unicast\n    route-target both auto evpn", desc: "NX-OS: tenant VRF'e L3 VNI + EVPN RT baglama (simetrik IRB). L3 VNI atanmazsa tenant icindeki subnetler arasi yonlendirme hic calismaz", sev: "i" },
+  { cat: "NX-OS", code: "interface Vlan<id>\n  fabric forwarding mode anycast-gateway", desc: "NX-OS: SVI'yi dagitik anycast gecit moduna alir (her leaf yerel yonlendirir). 'feature interface-vlan' gerekir; SVI'da 'vrf member <vrf>' ve 'ip forward' da yazilir", sev: "i" },
+  { cat: "NX-OS", code: "address-family l2vpn evpn", desc: "NX-OS: BGP'de EVPN adres ailesi (router bgp altinda global, komsu altinda aktivasyon icin). Overlay komsulari loopback uzerinden kurulur", sev: "i" },
+  { cat: "NX-OS", code: "send-community extended", desc: "NX-OS: komsu AF'sinde genisletilmis community'leri gonder (EVPN RT ve router MAC tasinmasi icin). Ciplak 'send-community' standard demektir; 'both' de gecerlidir", sev: "i" },
+  { cat: "NX-OS", code: "show nve vni", desc: "NX-OS: VNI listesi. Sutunlar: Interface, VNI, Multicast-group, State, Mode, Type [BD/VRF], Flags. BGP ingress-replication'da Multicast-group sutunu 'UnicastBGP' yazar", sev: "i" },
+  { cat: "NX-OS", code: "show nve peers", desc: "NX-OS: uzak VTEP (peer) listesi. Sutunlar: Interface, Peer-IP, State (Up), LearnType (CP/DP), Uptime, Router-Mac. Bos liste = underlay veya source-interface sorunu", sev: "i" },
+  { cat: "NX-OS", code: "show nve interface nve1 detail", desc: "NX-OS: NVE arayuz detayi: State, encapsulation (VXLAN), Local/Anycast Router MAC, Host Learning Mode, Source-Interface ve hold-down sureleri", sev: "i" },
+  { cat: "NX-OS", code: "show nve vni interface nve1 detail", desc: "NX-OS: VNI detayi: Mcast-Addr, VNI State, Mode (control-plane), VNI Type [BD/VRF], Provision State, Vlan-BD, SVI State (L3 VNI'da UP [vrf-id])", sev: "i" },
+  { cat: "NX-OS", code: "show nve vrf", desc: "NX-OS: L3 VNI ile iliskilendirilmis VRF listesi ve VNI eslesmesi (simetrik IRB kontrolu)", sev: "i" },
+  { cat: "NX-OS", code: "show bgp l2vpn evpn summary", desc: "NX-OS: EVPN komsu ozeti (State/PfxRcd). PfxRcd 0 ise uzak EVPN route hic gelmiyor: komsu AF aktivasyonu, send-community ve RT kontrol edilir. RD/VNI bu ozette GORUNMEZ", sev: "i" },
+  { cat: "NX-OS", code: "show bgp l2vpn evpn", desc: "NX-OS: EVPN tablosu. 'Route Distinguisher:' basliklarinda hangi L2VNI/L3VNI'ye ait oldugu etiketlenir; Tip-2 MAC/IP ve Tip-3 IMET rotalari burada gorulur", sev: "i" },
+  { cat: "NX-OS", code: "show bgp l2vpn evpn route-type 5", desc: "NX-OS: yalniz Tip-5 (IP prefix) rotalari. L3 VNI / simetrik IRB kontrolu: Extcommunity RT, ENCAP:8 ve Received label (L3 VNI) gorulur", sev: "i" },
+  { cat: "NX-OS", code: "show bgp evi <id>", desc: "NX-OS: EVI bazli EVPN kontrolu. NX-OS'ta 'show evpn evi vni ... detail' YOKTUR (o bicim Dell OS10'a aittir); karsiligi bu komuttur ('show bgp evi l2-evi' ozet bicimi)", sev: "i" },
+  { cat: "NX-OS", code: "show l2route evpn mac all", desc: "NX-OS: EVPN ile ogrenilmis MAC'ler (Prod=BGP, Rcv). Next-Hops sutununda uzak VTEP IP'si ve etiketi (Label: <L2VNI>) gorulur", sev: "i" },
+  { cat: "NX-OS", code: "show l2route evpn mac-ip all detail", desc: "NX-OS: Tip-2 MAC/IP rotalari detayli. Uzak host MAC'i ogrenilmiyorsa kontrol edilecek ilk ciktidir", sev: "i" },
+  { cat: "NX-OS", code: "show l2route evpn imet all", desc: "NX-OS: Tip-3 IMET rotalari (BUM trafiginin cogaltma listesi). IMET gelmiyorsa uzak VTEP'ten broadcast/unknown-unicast hic gelmez", sev: "i" },
+  { cat: "NX-OS", code: "show vxlan interface", desc: "NX-OS: VXLAN arayuz ozeti. Nexus 9300-EX/FX/GX'te desteklenmez; bu platformlarda 'show nve ...' kullanilir. ('show vxlan vni' NX-OS'ta YOKTUR - Alaxala komutudur)", sev: "i" },
+  { cat: "NX-OS", code: "show ip arp suppression-cache", desc: "NX-OS: ARP bastirma onbellegi ('suppress-arp' ile). Uzak hostlarin ARP kayitlari kontrol duzleminden doldurulur", sev: "i" },
+
   // ═════════════════════════════════════════════════════════════
   // 10. DEVICE MANAGEMENT & TROUBLESHOOTING
   // ═════════════════════════════════════════════════════════════
@@ -1315,6 +1352,25 @@ const SCENARIOS = [
       { code: "show standby <intf> <grp>", desc: "Belirli interface/grup detayi" },
     ],
     hint: "HSRP sorunlari: 1) Farkli group ID, 2) Farkli virtual IP, 3) Authentication mismatch, 4) Preempt etkin degil, 5) Timer mismatch (hello/hold), 6) Track objesinin yanlis decrement degeri, 7) Interface down ama HSRP habersiz."
+  },
+  {
+    title: "VXLAN EVPN: Iki VTEP Arasi L2 VNI Erisimi Yok",
+    severity: "err",
+    symptom: "Ayni L2 VNI icindeki iki host farkli VTEP'lerin arkasinda; birbirine ping atamiyor, uzak MAC ogrenilmiyor.",
+    topic: "overlay",
+    steps: [
+      { code: "show nve vni", desc: "VNI VTEP'e ekli mi ve durumu ne? Sutunlar: Interface, VNI, Multicast-group, State, Mode, Type [BD/VRF], Flags. State Down = VNI islenmiyor; Multicast-group 'UnicastBGP' = BGP ingress-replication (PIM grubu degil)" },
+      { code: "show nve peers", desc: "Uzak VTEP ile tunel kurulmus mu (State Up, LearnType CP). Liste BOSSA veri duzleminden once underlay kontrol edilir: source-interface loopback /32 ve IGP duyurusu" },
+      { code: "show nve interface nve1 detail", desc: "NVE arayuzu Up mi, Host Learning Mode Control-Plane mi, Source-Interface dogru ve Up mi? Kaynak loopback down ise hicbir VNI ayaga kalkmaz" },
+      { code: "show running-config | section interface nve1", desc: "'member vni <vni>' ile 'vlan <id>' altindaki 'vn-segment <vni>' degerleri BIREBIR eslesmeli. Uyusmazlikta kontrol duzlemi ayakta olsa da uzak MAC hic ogrenilmez" },
+      { code: "show running-config | section evpn", desc: "'evpn' blogunda 'vni <id> l2' tanimli mi; rd ve route-target (import/export) bu VNI icin yazilmis mi? RT eslesmezse uzak route kabul edilmez" },
+      { code: "show running-config | section router bgp", desc: "Overlay BGP: 'address-family l2vpn evpn' ve komsu altinda 'send-community extended' yazili mi? Bu satir olmadan RT ve router MAC tasinmaz, EVPN route'lari anlamsiz gelir" },
+      { code: "show bgp l2vpn evpn summary", desc: "Komsu Established mi, State/PfxRcd kac? PfxRcd 0 = uzak taraftan hic EVPN route gelmiyor (komsu AF aktivasyonu, send-community veya RT sorunu). Not: bu ozette RD/VNI GORUNMEZ" },
+      { code: "show bgp l2vpn evpn", desc: "'Route Distinguisher:' basliklari hangi L2VNI/L3VNI'ye ait oldugunu etiketler. Tip-2 (MAC/IP) ve Tip-3 (IMET) rotalari gorunuyor mu; uzak VTEP'ten Tip-2 hic gelmiyorsa karsi tarafta evpn blogu eksiktir" },
+      { code: "show l2route evpn mac all", desc: "Uzak MAC BGP ile mi ogrenildi (Prod=BGP, Rcv)? Next-Hops sutununda uzak VTEP IP'si ve Label: <L2VNI> gorulur. Bos ise sorun kontrol duzleminde, dolu ise veri duzleminde" },
+      { code: "show mac address-table", desc: "Uzak MAC 'nve1(<peer-ip>)' biciminde mi? Bu bicim MAC'in tunel uzerinden ogrenildigini gosterir; hic yoksa BUM trafigi de karsi VTEP'e ulasmiyor (Tip-3 IMET kontrol edilir)" },
+    ],
+    hint: "En sik dort neden: 1) 'vn-segment' ile 'member vni' degerlerinin uyusmamasi (kontrol duzlemi Up ama MAC ogrenilmez), 2) 'evpn' altinda vni/rd/route-target taniminin eksik olmasi, 3) overlay BGP'de 'address-family l2vpn evpn' aktivasyonu ya da 'send-community extended' satirinin eksikligi (RT tasinmaz), 4) source-interface loopback'in underlay'de duyurulmamis olmasi (show nve peers bos). Once underlay, sonra kontrol duzlemi, en son veri duzlemi dogrulanir."
   },
 ];
 
