@@ -220,6 +220,7 @@ const COMMANDS = [
   { cat: "Static Route", code: "ip route <prefix> <mask> <next-hop>", desc: "Statik route: next-hop IP ile. AD default 1. Floating static icin daha yuksek AD verin", sev: "i" },
   { cat: "Static Route", code: "ip route <prefix> <mask> <exit-interface>", desc: "Statik route: cikis interface ile. P2P linkler icin uygun. Broadcast networklerde proxy-ARP gerektirir", sev: "i" },
   { cat: "Static Route", code: "ip route 0.0.0.0 0.0.0.0 <next-hop>", desc: "Default route (gateway of last resort). Internet cikisi icin. 'ip default-gateway' L2 switchlerde kullanilir", sev: "i" },
+  { cat: "Static Route", code: "ip default-gateway <ip-address>", desc: "Yalniz IP routing KAPALIYKEN (no ip routing) gecerli: L2 switch / host kipinde varsayilan agi gecidi. Routing tablosu yoktur; yonetim trafigi bu adrese gider. 'ip routing' acikken ise 'ip route 0.0.0.0 0.0.0.0 <next-hop>' kullanin. show ip route bunu gostermez, running-config'te gorunur", sev: "i" },
   { cat: "Static Route", code: "ip route <prefix> <mask> <next-hop> <AD>", desc: "Floating static route: yuksek AD (ornek 200) ile yedek route. Primary route duserse devreye girer", sev: "i" },
   { cat: "Static Route", code: "ip route <prefix> <mask> <next-hop> track <obj>", desc: "Track objesine bagli static route. Track DOWN olursa route otomatik kalkar. IP SLA ile birlikte kullanilir", sev: "i" },
   { cat: "IP SLA", code: "ip sla <number>", desc: "IP SLA probe konfigurasyonuna gir. Number: 1-2147483647. ICMP echo, TCP connect, HTTP GET gibi probe'lar tanimlanir", sev: "i" },
@@ -422,9 +423,9 @@ const COMMANDS = [
   { cat: "Interface", code: "interface loopback <number>", desc: "Loopback interface olustur. Her zaman UP. Router ID, management IP, BGP source icin ideal", sev: "i" },
   { cat: "Interface", code: "interface vlan <id>", desc: "SVI (Switch Virtual Interface) olustur. L3 switch'te VLAN icin gateway IP. ip routing etkin olmali", sev: "i" },
   { cat: "Interface", code: "ip routing", desc: "L3 switch'te IP routing etkinlestir. SVI'lar arasi routing icin ZORUNLU. Olmadan L3 calismaz", sev: "i" },
-  { cat: "Interface", code: "no ip routing", desc: "L3 switch'te IP routing'i KAPAT. SVI'lar arasi yonlendirme durur, cihaz saf L2 switch olur. Yonetim icin ip default-gateway gerekir", sev: "i" },
+  { cat: "Interface", code: "no ip routing", desc: "IP yonlendirmeyi kapat: switch/router host gibi davranir, routing tablosu kalkar; varsayilan cikis icin 'ip default-gateway <ip>' gerekir. L3 switch'te SVI'lar arasi yonlendirme durur. Bazi switch platformlarinda varsayilan zaten kapalidir", sev: "w" },
   { cat: "Interface", code: "ip default-gateway <ip>", desc: "L2 modda (ip routing KAPALI) yonetim trafigi icin varsayilan gecit. ip routing ACIKKEN kullanilmaz — onun yerine 'ip route 0.0.0.0 0.0.0.0 <ip>' yazilir", sev: "i" },
-  { cat: "Interface", code: "sdm prefer lanbase-routing", desc: "2960-X LAN Base SDM sablonu: static routing ve SVI yonlendirmesi icin bellek ayirir. Global config'te girilir, etkin olmasi icin RELOAD sart. Yalniz LAN Base imajinda", sev: "w" },
+  { cat: "Interface", code: "sdm prefer lanbase-routing", desc: "Catalyst 2960-X/2960-S (LAN Base) icin SDM sablonu: SVI uzerinde IPv4 statik unicast routing icin bellek ayirir. Statik routing kullanilmayacaksa SECILMEZ (diger ozelliklerin bellegini kisar). Etkili olmasi icin RELOAD sart; sonrasinda 'ip routing' ile routing acilir. Dogrulama: show sdm prefer", sev: "w" },
   { cat: "Interface", code: "show cdp neighbors", desc: "CDP komsu listesi: Device ID, Local Intf, Holdtme, Capability, Platform, Port ID. Topoloji kesfetme", sev: "i" },
   { cat: "Interface", code: "show cdp neighbors detail", desc: "CDP detayli komsu bilgisi: management IP, platform, IOS version, native VLAN, duplex. Uzak cihaz bilgisi", sev: "i" },
   { cat: "Interface", code: "show lldp neighbors", desc: "LLDP (IEEE) komsu listesi. CDP'nin multi-vendor versiyonu. Cisco + non-Cisco cihazlar", sev: "i" },
@@ -3074,6 +3075,8 @@ const WEB_RESOURCES = [
   { name: "Cisco Catalyst 9400 VLAN CG: Configuring Layer 3 Subinterfaces", url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9400/software/release/17-7/configuration_guide/vlan/b_177_vlan_9400_cg/configuring_layer_3_subinterfaces.html", desc: "Resmi: alt arayuz, encapsulation dot1Q [native], router-on-a-stick." },
   { name: "Cisco: IPSec Troubleshooting - debug Komutlari (5409)", url: "https://www.cisco.com/c/en/us/support/docs/security-vpn/ipsec-negotiation-ike-protocols/5409-ipsec-debug-00.html", desc: "Resmi TechNote: show crypto isakmp sa durumlari, ipsec sa sayaclari, debug ciktilari." },
   { name: "Cisco: LAN-to-LAN IPsec Tunnel Between Two Routers (71462)", url: "https://www.cisco.com/c/en/us/support/docs/routers/1700-series-modular-access-routers/71462-rtr-l2l-ipsec-split.html", desc: "Resmi: isakmp policy/key, transform-set, crypto map, crypto ACL ve NAT muafiyeti ornegi." },
+  { name: "Cisco: Catalyst 2960-X Consolidated Platform Configuration Guide 15.2(6)E - Configuring SDM Templates", url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst2960x/software/15_2_6_e/configuration_guide/b_1526e_consolidated_2960x_cg/b_1526e_consolidated_2960x_cg_chapter_01000001.html", desc: "Resmi: sdm prefer lanbase-routing, reload sarti, IPv4 statik routing sablonu." },
+  { name: "Cisco: ip default-gateway (Using Cisco IOS Software)", url: "https://www.cisco.com/E-Learning/bulk/public/tac/cim/cib/using_cisco_ios_software/cmdrefs/ip_default-gateway.htm", desc: "Resmi: ip default-gateway sozdizimi; IP routing kapaliyken (host kipi) varsayilan ag gecidi." },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
