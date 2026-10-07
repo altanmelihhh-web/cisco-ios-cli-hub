@@ -750,6 +750,23 @@ const COMMANDS = [
   { cat: "DHCP", code: "option 150 ip <tftp-server-ip>", desc: "DHCP Option 150: TFTP sunucu IP (Cisco IP Phone firmware icin). Cisco VoIP ortamlarinda sik kullanilir", sev: "i" },
   { cat: "DHCP", code: "option 66 ascii <tftp-server-name>", desc: "DHCP Option 66: TFTP sunucu hostname veya IP. Genel PXE/TFTP boot senaryolari icin", sev: "i" },
   { cat: "DHCP", code: "option 43 hex <hex-string>", desc: "DHCP Option 43: Vendor-specific bilgi. Wireless controller discovery (CAPWAP) icin sik kullanilir", sev: "i" },
+  // ─── WIRELESS (Catalyst 9800 WLC / IOS XE) ───
+  { cat: "Wireless / WLAN", code: "wlan <profile-name> <wlan-id> <ssid>", desc: "Catalyst 9800 WLC'de WLAN/SSID profili olusturur; WLAN ID 1-512 araligindadir. Router/switch IOS CLI komutu degildir", sev: "i" },
+  { cat: "Wireless / WLAN", code: "security wpa akm psk set-key asci 0 <passphrase>", desc: "WLAN configuration modunda PSK AKM ve passphrase ayarlar (Catalyst 9800 IOS XE); canli ortamda guclu, benzersiz anahtar kullanin", sev: "w" },
+  { cat: "Wireless / WLAN", code: "security wpa wpa2 ciphers aes", desc: "WLAN'da WPA2 AES sifrelemesini ayarlar; eski TKIP yerine AES kullanin (Catalyst 9800 WLC)", sev: "i" },
+  { cat: "Wireless / WLAN", code: "no shutdown", desc: "WLAN configuration modunda SSID yayini icin WLAN'i etkinlestirir (Catalyst 9800 WLC)", sev: "i" },
+  { cat: "Wireless / WLAN", code: "show wlan summary", desc: "Catalyst 9800 WLC'de WLAN ID, profil, SSID ve durum ozetini gosterir", sev: "i" },
+  { cat: "Wireless / WLAN", code: "show ap summary", desc: "Controller'a katilmis AP'leri ve join durumlarini listeler (Catalyst 9800 WLC)", sev: "i" },
+  { cat: "Wireless / WLAN", code: "show wireless client summary", desc: "Catalyst 9800 WLC'ye bagli istemcilerin ozetini gosterir", sev: "i" },
+  { cat: "Wireless / WLAN", code: "wireless profile policy <policy-name>", desc: "Catalyst 9800 WLC'de WLAN istemcileri icin policy profile olusturur; WLAN ile profile ayrica eslestirilir", sev: "i" },
+  { cat: "Wireless / WLAN", code: "show wireless profile policy detailed <policy-name>", desc: "Policy profile VLAN, switching ve QoS ayrintilarini gosterir (Catalyst 9800 WLC)", sev: "i" },
+  // ─── PROGRAMMABILITY / NETCONF / RESTCONF ───
+  { cat: "Programmability / APIs", code: "netconf-yang", desc: "IOS XE'de NETCONF/YANG yonetim ag aracisini etkinlestirir; SSH erisimi ve AAA/ACL ile guvenceye alin", sev: "w" },
+  { cat: "Programmability / APIs", code: "show netconf-yang sessions", desc: "IOS XE cihazindaki etkin NETCONF oturumlarini ve istemci bilgilerini gosterir", sev: "i" },
+  { cat: "Programmability / APIs", code: "show netconf-yang datastores", desc: "NETCONF/YANG datastore yeteneklerini ve desteklenen datastore'lari gosterir", sev: "i" },
+  { cat: "Programmability / APIs", code: "restconf", desc: "IOS XE'de RESTCONF arayuzunu etkinlestirir; HTTPS ve kisitli yonetim erisimi kullanin", sev: "w" },
+  { cat: "Programmability / APIs", code: "ip http secure-server", desc: "IOS XE HTTPS sunucusunu etkinlestirir; RESTCONF icin gereklidir, yonetim ACL/AAA ile sinirlandirin", sev: "w" },
+  { cat: "Programmability / APIs", code: "show platform software yang-management process", desc: "IOS XE YANG yonetim islemlerinin calisma durumunu dogrular", sev: "i" },
   { cat: "DHCP", code: "netbios-name-server <ip>", desc: "DHCP pool icinde: WINS sunucu IP. Eski Windows ortamlarinda NetBIOS name resolution icin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <start-ip> [end-ip]", desc: "DHCP'den haric tutulan IP araligi. Gateway, sunucu, printer gibi statik IP'li cihazlar icin. Pool olusturmadan ONCE tanimlayin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <single-ip>", desc: "Tek IP'yi DHCP'den haric tut. Genellikle default gateway IP'si haric tutulur", sev: "i" },
@@ -3327,6 +3344,8 @@ function init() {
   renderGenericSection("pingtrace", "Ping / Traceroute / Connectivity", "Extended ping (source, size, df-bit, sweep, repeat), extended traceroute (source, TTL, port), VRF ping/trace, CEF kontrol.", ["Ping/Trace"]);
   renderGenericSection("debug", "Debug Komutlari", "Tum debug komutlari: IP, OSPF, BGP, EIGRP, IPsec, STP, HSRP, NAT, DHCP, MPLS, LACP. terminal monitor, undebug all.", ["Debug"]);
   renderGenericSection("span", "SPAN / Monitor / Storm Control / DAI", "Port mirror (SPAN/RSPAN), storm control, Dynamic ARP Inspection, IP Source Guard, monitoring komutlari.", ["SPAN", "Storm Control", "DAI", "IP Source Guard", "Monitoring", "VRF", "Multicast"]);
+  renderGenericSection("wireless", "Wireless / WLAN", "Catalyst 9800 WLC WLAN profilleri, WPA2-PSK ve kablosuz istemci/AP dogrulama komutlari.", ["Wireless / WLAN"]);
+  renderGenericSection("programmability", "Programmability / APIs", "IOS XE NETCONF/YANG ve RESTCONF yonetimi; HTTPS, AAA ve erisim kisitlamalarini guvenli sekilde yapilandirin.", ["Programmability / APIs"]);
   renderScenarios();
   renderGithub();
 
