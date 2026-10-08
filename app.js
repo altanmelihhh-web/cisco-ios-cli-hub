@@ -172,9 +172,20 @@ const COMMANDS = [
   { cat: "EIGRP", code: "show ip eigrp interfaces", desc: "EIGRP etkin interface'ler: peer sayisi, xmit-queue, pending routes, SRTT ortalamasi. Interface bazli EIGRP durumu", sev: "i" },
   { cat: "EIGRP", code: "show ip eigrp traffic", desc: "EIGRP paket istatistikleri: Hello, Update, Query, Reply, ACK gonderilen/alinan sayilari. Query storm tespiti", sev: "i" },
   { cat: "EIGRP", code: "show ip route eigrp", desc: "Sadece EIGRP route'lar: D=internal (AD 90), D EX=external (AD 170). Metric degerleri ve next-hop", sev: "i" },
+  { cat: "EIGRP", code: "show eigrp address-family ipv4 neighbors", desc: "Named mode komsu listesi (IPv4 adres ailesi). Klasik 'show ip eigrp neighbors' bunun kisaltmasidir; named mode basligi 'EIGRP-IPv4 Neighbors for AS(N)'", sev: "i" },
+  { cat: "EIGRP", code: "show eigrp address-family ipv4 topology", desc: "Named mode topoloji tablosu (IPv4 AF): 'EIGRP-IPv4 Topology Table for AS(N)/ID(RID)'. P/A kodlari, successors, FD ve via satirlari", sev: "i" },
+  { cat: "EIGRP", code: "show eigrp address-family ipv4 interfaces", desc: "Named mode EIGRP etkin arayuz listesi (IPv4 AF): Peer sayisi, Xmit Queue, SRTT ortalamasi", sev: "i" },
 
   // ─── EIGRP — CONFIG ───
   { cat: "EIGRP", code: "router eigrp <AS-number>", desc: "EIGRP config moduna gir. AS nummarasi (1-65535) TUM EIGRP router'larda AYNI olmali! Farkli AS = neighbor olunamaz", sev: "i" },
+  { cat: "EIGRP", code: "router eigrp <name>", desc: "EIGRP NAMED MODE prosesi: ad YERELDIR (komsuyla eslesmek zorunda degil), AS address-family altinda atanir. Modern IOS/IOS-XE yapisi; dogrulama: show eigrp address-family ipv4 neighbors", sev: "i" },
+  { cat: "EIGRP", code: "address-family ipv4 unicast autonomous-system <AS>", desc: "Named mode'da AS burada atanir ('unicast' anahtar sozcugu opsiyonel). AS numarasi TUM komsularda AYNI olmali; farkliysa komsuluk kurulmaz ve log'da acik hata gorunmez (sessiz ariza)", sev: "i" },
+  { cat: "EIGRP", code: "af-interface <interface|default>", desc: "Named mode'da arayuz bazli EIGRP ayarlari (passive-interface, hello-interval, hold-time, authentication) bu alt modda toplanir. 'af-interface default' ile tumune uygulanir, istisnalar tek tek yazilir", sev: "i" },
+  { cat: "EIGRP", code: "topology base", desc: "Named mode topoloji alt modu: variance, maximum-paths, redistribute ve distance burada verilir", sev: "i" },
+  { cat: "EIGRP", code: "authentication mode md5", desc: "Named mode MD5 kimlik dogrulamasi; af-interface altinda acilir. Klasik modda arayuzde 'ip authentication mode eigrp <AS> md5' yazilir", sev: "i" },
+  { cat: "EIGRP", code: "eigrp stub connected summary", desc: "Named mode STUB: sube/uc router transit olmadigini bildirir, sorgu (Query) yayilimi burada biter ve SIA riski duser. Named mode'da address-family altindadir (klasik modda router modunda 'eigrp stub connected summary')", sev: "w" },
+  { cat: "EIGRP", code: "eigrp stub connected summary leak-map <name>", desc: "Stub'in normalde bastirdigi secili onekleri yine de duyurur; <name> bir route-map'tir (route-map + prefix-list ayrica tanimlanir)", sev: "w" },
+  { cat: "EIGRP", code: "exit-af-interface", desc: "Named mode alt mod cikislari: exit-af-interface (af-interface), exit-af-topology (topoloji), exit-address-family (adres ailesi)", sev: "i" },
   { cat: "EIGRP", code: "eigrp router-id <ip>", desc: "EIGRP Router ID'yi manuel ayarla. Best practice: Loopback IP", sev: "i" },
   { cat: "EIGRP", code: "network <ip> <wildcard>", desc: "EIGRP'yi eslesyen interface'lerde etkinlestir ve network'u advertise et. Wildcard mask ile ince ayar", sev: "i" },
   { cat: "EIGRP", code: "no auto-summary", desc: "Classful auto-summarization'i kapat. IOS 15+ default kapali. Eski IOS'ta MUTLAKA kapatin!", sev: "i" },
@@ -235,10 +246,10 @@ const COMMANDS = [
   { cat: "Track", code: "track <obj> list boolean and", desc: "Boolean AND track listesi. Tum object'ler UP ise track UP. Herhangi biri DOWN = track DOWN. Cift IP SLA kontrolu icin", sev: "i" },
   { cat: "Track", code: "object <track-obj>", desc: "Track list icinde: alt track objesini ekle. Boolean and/or listesine uye yapilir", sev: "i" },
   { cat: "Track", code: "show track", desc: "Tum track objeleri ve durumları: UP/DOWN, change count, last change time", sev: "i" },
-  { cat: "EEM", code: "event manager applet <name>", desc: "EEM (Embedded Event Manager) applet olustur. Event'e dayali otomatik aksiyon: track down olunca email gonder, konfig degistir vs.", sev: "i" },
+  { cat: "EEM", code: "event manager applet <name>", desc: "IOS XE EEM applet tanimlar; event detector/action syntax'i release'e gore degisebilir. Otomatik config degisikligini once labda test edin", sev: "w" },
   { cat: "EEM", code: "event track <obj> state down", desc: "Tetikleyici: track objesi DOWN oldugunda. state up ile UP oldugunda da tetiklenebilir", sev: "i" },
   { cat: "EEM", code: "action 1.0 syslog msg \"Track DOWN - failover tetiklendi\"", desc: "EEM aksiyonu: syslog mesaji yaz. action X.Y = sira numarasi. Birden fazla action tanimlanabilir", sev: "i" },
-  { cat: "EEM", code: "action 2.0 cli command \"enable\"", desc: "EEM aksiyonu: CLI komutu calistir. enable > conf t > herhangi bir IOS komutu zinciri kurulabilir", sev: "i" },
+  { cat: "EEM", code: "action 2.0 cli command \"enable\"", desc: "EEM CLI action zincirinin ilk adimi; AAA command authorization/policy yetkilerini dogrulayin ve degisiklik yapan action'lari once labda deneyin", sev: "w" },
 
   // ─── VLAN / TRUNK ───
   { cat: "VLAN", code: "show vlan brief", desc: "VLAN ozeti: ID, Name, Status (active/suspend), Ports. Hangi port hangi VLAN'da hizla gor", sev: "i" },
@@ -728,13 +739,13 @@ const COMMANDS = [
   { cat: "SNMP/Syslog/NTP", code: "ntp source Loopback0", desc: "NTP kaynak interface. NTP paketleri Loopback0 IP'si ile gonderilir. Best practice", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "ntp access-group peer <acl>", desc: "NTP erisim kontrolu: peer access-group ile kimlerin NTP sync yapabilecegini sinirla", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "ntp master <stratum>", desc: "Bu cihazi NTP master (server) yap. Stratum 1-15 (1=en yuksek). Internet'e erisimsiz ortamlarda", sev: "i" },
-  { cat: "SNMP/Syslog/NTP", code: "clock timezone <name> <hours-offset>", desc: "Saat dilimi ayarla. Ornek: clock timezone TRT 3 (Turkiye). Loglar ve NTP icin onemli", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "clock timezone <name> <hours-offset> [<minutes-offset>]", desc: "Saat dilimi ayarla. Ornek: clock timezone TRT 3 0 (Turkiye, UTC+3, yaz saati yok). show clock bu dilime cevrilir; log damgalari 'service timestamps log datetime msec localtime' verilmedikce UTC kalir", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "clock summer-time <name> recurring", desc: "Yaz saati uygulamasi otomatik. Recurring = her yil otomatik. Turkiye icin artik gereksiz (2016 sonrasi)", sev: "i" },
-  { cat: "SNMP/Syslog/NTP", code: "show ntp status", desc: "NTP senkronizasyon durumu: Clock is synchronized/unsynchronized, stratum, reference IP, offset (ms). offset < 100ms ideal", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "show ntp status", desc: "NTP senkronizasyon durumu: Clock is synchronized/unsynchronized, stratum, reference IP, offset (ms). offset < 100ms ideal. reference time = son basarili sorgunun zamani (HEX NTP damgasi ve parantezdeki tarih ayni ani gosterir); eslesmemisse 1900 baslangici (00000000.00000000) gorulur", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "show ntp associations", desc: "NTP sunucu listesi: * = aktif, + = aday, - = reddedilmis. st = stratum, when = son sorgudan beri (saniye), poll = sorgu araligi", sev: "i" },
   { cat: "SNMP/Syslog/NTP", code: "show ntp associations detail", desc: "NTP sunucu detayli: offset, delay, dispersion, jitter, reach (377 = son 8 sorgu basarili)", sev: "i" },
-  { cat: "SNMP/Syslog/NTP", code: "show clock", desc: "Cihaz saati. NTP senkron ise '*' isareti basinda gorulur. Senkron degilse '.' gorulur", sev: "i" },
-  { cat: "SNMP/Syslog/NTP", code: "show clock detail", desc: "Saat detayli: zaman kaynagi (NTP/user/hardware), saat dilimi, yaz saati durumu", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "show clock", desc: "Cihaz saati ve saat dilimi etiketi (ornek: 10:12:00.123 TRT Tue Oct 6 2026). Basta isaret yoksa saat yetkili ve NTP esit; '*' saat yetkili degil (hicbir kaynaga esitlenmedi); '.' saat yetkili ama NTP esitlenmedi", sev: "i" },
+  { cat: "SNMP/Syslog/NTP", code: "show clock detail", desc: "Saat detayli: show clock satiri + 'Time source is NTP' (NTP esit) gibi zaman kaynagi; saat dilimi 'clock timezone' ayariyla belirlenir (varsayilan UTC)", sev: "i" },
 
   // ═════════════════════════════════════════════════════════════
   // 5. DHCP
@@ -767,6 +778,30 @@ const COMMANDS = [
   { cat: "Programmability / APIs", code: "restconf", desc: "IOS XE'de RESTCONF arayuzunu etkinlestirir; HTTPS ve kisitli yonetim erisimi kullanin", sev: "w" },
   { cat: "Programmability / APIs", code: "ip http secure-server", desc: "IOS XE HTTPS sunucusunu etkinlestirir; RESTCONF icin gereklidir, yonetim ACL/AAA ile sinirlandirin", sev: "w" },
   { cat: "Programmability / APIs", code: "show platform software yang-management process", desc: "IOS XE YANG yonetim islemlerinin calisma durumunu dogrular", sev: "i" },
+  { cat: "Automation / Ansible", code: "ansible-galaxy collection install cisco.ios", desc: "Ansible denetleyici makinesine Cisco IOS koleksiyonunu kurar; ag cihazinda IOS CLI komutu degildir", sev: "i" },
+  { cat: "Automation / Ansible", code: "ansible-playbook -i inventory.ini interfaces.yml --check --diff", desc: "IOS XE playbook'unu degisiklik yapmadan once diff ile onizler; --check her modulde tam simülasyon garantisi vermez, hedef cihazda collection/platform desteğini dogrulayin", sev: "w" },
+  { cat: "Programmability / APIs", code: "netconf-yang ssh ipv4 access-list name <acl>", desc: "NETCONF-YANG oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. AAA/NACM role-based authorization yerine gecmez", sev: "w" },
+  { cat: "Programmability / APIs", code: "restconf ipv4 access-list name <acl>", desc: "RESTCONF oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. HTTPS/TLS ve AAA/NACM ayri yapilandirilir", sev: "w" },
+  // ─── CCNP ENCOR: CATALYST SD-WAN (IOS XE EDGE) ───
+  { cat: "SD-WAN", code: "show sdwan control connections", desc: "Catalyst SD-WAN edge'in vSmart/vBond kontrol baglantilarini ve durumunu gosterir; controller baglantisi olmadan OMP overlay kurulmaz", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan omp peers", desc: "OMP peer'larini ve alinan/kurulan/gonderilen route sayaçlarini gosterir; IOS XE Catalyst SD-WAN qualified CLI", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan omp routes", desc: "OMP overlay route'larini inceler; site/VPN path'i, TLOC ve tercih bilgisini kontrol edin", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan bfd sessions", desc: "Overlay tunnel BFD oturumlari ve reachability durumunu gosterir; control connection ile veri yolu sagligini ayri degerlendirin", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan app-route stats", desc: "Application-aware routing SLA istatistiklerini gosterir; policy ve probe esiklerini dogrulayin", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan running-config system", desc: "Catalyst SD-WAN system bolumunu (system-ip/site-id/organization/vBond) goruntuler; IOS XE SD-WAN edge'e ozeldir", sev: "i" },
+  { cat: "SD-WAN", code: "show sdwan running-config vpn 0", desc: "VPN 0 transport interface ve tunnel-interface ayarlarini goruntuler; klasik IOS router VPN komutu degildir", sev: "i" },
+  { cat: "Flexible NetFlow", code: "show flow exporter <exporter-name>", desc: "NetFlow exporter hedefini, protokolunu, durumunu ve export istatistiklerini dogrular", sev: "i" },
+  { cat: "Flexible NetFlow", code: "show flow monitor <monitor-name>", desc: "Flexible NetFlow monitor durumunu/istatistigini gosterir; record ve exporter baglantilarini kontrol edin", sev: "i" },
+  { cat: "Flexible NetFlow", code: "show flow monitor name <monitor-name> cache format record", desc: "Monitor cache'indeki kayitlari ve flow sayaçlarini gosterir; trafik yoksa bos cache normal olabilir", sev: "i" },
+  { cat: "Flexible NetFlow", code: "show flow interface <interface>", desc: "Interface'e NetFlow monitor baglanmis mi ve yonu nedir kontrol eder", sev: "i" },
+  { cat: "Flexible NetFlow", code: "show running-config flow monitor <monitor-name>", desc: "Monitor'un record/exporter/cache ayarlarini running-config icinde denetler", sev: "i" },
+  { cat: "EEM", code: "show event manager policy registered", desc: "Kayitli Embedded Event Manager policy/applet'leri gosterir; beklenen applet listede yoksa event/action syntax ve policy yetkisini kontrol edin", sev: "i" },
+  { cat: "EEM", code: "show event manager detector syslog", desc: "Syslog event detector durumunu ve desteklenen algilama yeteneklerini gosterir", sev: "i" },
+  { cat: "EEM", code: "show event manager statistics server", desc: "EEM server ve policy calisma istatistiklerini gosterir; tetiklenmeyen applet'lerde runtime sorunlarini ayirir", sev: "i" },
+  { cat: "SD-Access", code: "show lisp session", desc: "LISP control-plane session durumunu gosterir; SD-Access fabric'te map-server/map-resolver ulasilabilirligini dogrulayin", sev: "i" },
+  { cat: "SD-Access", code: "show lisp instance-id <instance-id> ipv4 map-cache", desc: "LISP instance map-cache kayitlarini gosterir; EID-to-RLOC kaydi yoksa control-plane kayit/lookup yolunu inceleyin", sev: "i" },
+  { cat: "SD-Access", code: "show cts environment-data", desc: "TrustSec/CTS environment ve policy bilgisini goruntuler; SD-Access group/policy runtime'i Catalyst Center tarafinda da dogrulanmalidir", sev: "i" },
+  { cat: "SD-Access", code: "show cts role-based sgt-map all", desc: "IP/MAC-to-SGT role-based mapping tablosunu gosterir; beklenen grup etiketi atamasini dogrulayin", sev: "i" },
   { cat: "DHCP", code: "netbios-name-server <ip>", desc: "DHCP pool icinde: WINS sunucu IP. Eski Windows ortamlarinda NetBIOS name resolution icin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <start-ip> [end-ip]", desc: "DHCP'den haric tutulan IP araligi. Gateway, sunucu, printer gibi statik IP'li cihazlar icin. Pool olusturmadan ONCE tanimlayin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <single-ip>", desc: "Tek IP'yi DHCP'den haric tut. Genellikle default gateway IP'si haric tutulur", sev: "i" },
@@ -858,6 +893,7 @@ const COMMANDS = [
   // ═════════════════════════════════════════════════════════════
   // 9. NX-OS SPECIFIC COMMANDS
   // ═════════════════════════════════════════════════════════════
+  { cat: "NX-OS", code: "show clock", desc: "NX-OS: cihaz saati ve saat dilimi etiketi, onek isareti yok (ornek: 10:12:00.123 TRT Tue Oct 6 2026). Dilim 'clock timezone <name> <hours> <minutes>' ile ayarlanir (ornek: clock timezone TRT 3 0)", sev: "i" },
   { cat: "NX-OS", code: "feature vpc", desc: "NX-OS: vPC (Virtual Port Channel) feature'ini etkinlestir. Feature etkinlestirilmeden vpc komutlari kullanilamaz!", sev: "i" },
   { cat: "NX-OS", code: "feature lacp", desc: "NX-OS: LACP feature'ini etkinlestir. Port-channel olusturmadan once gerekli", sev: "i" },
   { cat: "NX-OS", code: "feature interface-vlan", desc: "NX-OS: SVI (VLAN interface) olusturma yetenegini etkinlestir", sev: "i" },
@@ -999,8 +1035,7 @@ const COMMANDS = [
   { cat: "Device Mgmt", code: "reload cancel", desc: "Zamanlanmis reload'u iptal et. Uzak erisimi kaybetme riski olan konfig'lerde guvenlik agi", sev: "i" },
 
   // --- EEM ---
-  { cat: "Device Mgmt", code: "event manager applet <name>", desc: "EEM (Embedded Event Manager) applet olustur. Olay bazli otomatik aksiyonlar. Belirli bir olay olunca komut calistir", sev: "i" },
-  { cat: "Device Mgmt", code: "event syslog pattern \"<regex>\"", desc: "EEM trigger: syslog mesajinda pattern eslesmesi. Ornek: interface down mesaji geldiginde aksiyon al", sev: "i" },
+  { cat: "EEM", code: "event syslog pattern \"<regex>\"", desc: "EEM applet icinde syslog regex'iyle olay tetikler; genis regex beklenmeyen/tekrarlayan calismaya yol acabilir", sev: "w" },
   { cat: "Device Mgmt", code: "event timer watchdog time <seconds>", desc: "EEM trigger: belirli araliklarla calis (timer). Periodic kontrol gorevi icin", sev: "i" },
   { cat: "Device Mgmt", code: "event timer cron cron-entry \"0 2 * * *\"", desc: "EEM trigger: cron zamanlama. Her gun saat 02:00'de calis gibi. Zamanlanmis gorevler", sev: "i" },
   { cat: "Device Mgmt", code: "event track <track-number> state down", desc: "EEM trigger: IP SLA / track durumu degisince. Route veya link down olaylarini yakala", sev: "i" },
@@ -3139,6 +3174,7 @@ const GITHUB_RESOURCES = [
 
 const WEB_RESOURCES = [
   { name: "Cisco IOS Command Reference", url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/fundamentals/command/cf_command_ref.html", desc: "Resmi Cisco IOS komut referansi." },
+  { name: "Cisco IOS XE 17.17: NETCONF/RESTCONF Service-Level ACLs", url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/1717/b_1717_programmability_cg/netconf-and-restconf-service-level-acls.html", desc: "Resmi: named IPv4/IPv6 service ACL, netconf-yang ssh ipv4 access-list ve restconf ipv4 access-list; kaynak IP erişim filtresi AAA/NACM değildir." },
   { name: "PacketLife.net Cheat Sheets", url: "https://packetlife.net/library/cheat-sheets/", desc: "OSPF, BGP, VLANs, QoS, IOS, IPsec PDF cheat sheet'ler." },
   { name: "NetworkLessons.com", url: "https://networklessons.com/", desc: "Kapsamli Cisco network dersleri." },
   { name: "Cisco Learning Network", url: "https://learningnetwork.cisco.com/", desc: "Cisco sertifikasyon platformu." },
