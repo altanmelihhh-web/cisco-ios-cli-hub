@@ -247,6 +247,8 @@ const COMMANDS = [
   { cat: "Track", code: "object <track-obj>", desc: "Track list icinde: alt track objesini ekle. Boolean and/or listesine uye yapilir", sev: "i" },
   { cat: "Track", code: "show track", desc: "Tum track objeleri ve durumları: UP/DOWN, change count, last change time", sev: "i" },
   { cat: "EEM", code: "event manager applet <name>", desc: "IOS XE EEM applet tanimlar; event detector/action syntax'i release'e gore degisebilir. Otomatik config degisikligini once labda test edin", sev: "w" },
+  { cat: "EEM", code: "event none", desc: "Applet'i otomatik detector yerine manuel calistirilabilir kaydeder; yalniz privileged EXEC event manager run ile tetikleyin", sev: "i" },
+  { cat: "EEM", code: "event manager run <applet-name>", desc: "event none ile kaydedilmis EEM policy'yi privileged EXEC'te manuel calistirir; IOS XE surum/AAA ve policy izinlerini labda dogrulayin", sev: "w" },
   { cat: "EEM", code: "event track <obj> state down", desc: "Tetikleyici: track objesi DOWN oldugunda. state up ile UP oldugunda da tetiklenebilir", sev: "i" },
   { cat: "EEM", code: "action 1.0 syslog msg \"Track DOWN - failover tetiklendi\"", desc: "EEM aksiyonu: syslog mesaji yaz. action X.Y = sira numarasi. Birden fazla action tanimlanabilir", sev: "i" },
   { cat: "EEM", code: "action 2.0 cli command \"enable\"", desc: "EEM CLI action zincirinin ilk adimi; AAA command authorization/policy yetkilerini dogrulayin ve degisiklik yapan action'lari once labda deneyin", sev: "w" },
