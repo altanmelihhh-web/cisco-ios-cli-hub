@@ -790,6 +790,10 @@ const COMMANDS = [
   { cat: "MACsec / MKA", code: "show mka policy", desc: "MKA policy cipher/priority ve uygulanan interface ozetini gosterir; policy gorunmesi secure session kuruldugu anlamina gelmez", sev: "i" },
   { cat: "MACsec / MKA", code: "show mka sessions", desc: "Aktif MKA/MACsec session durumunu kontrol eder; model ve IOS XE release'e gore komut varyanti degisebilir", sev: "i" },
   { cat: "MACsec / MKA", code: "show macsec interface", desc: "Interface MACsec durumunu ve platformun sundugu security-association/counter ayrintilarini inceler", sev: "i" },
+  // ─── CCNP ENCOR: TRUSTSEC / SGT ───
+  { cat: "TrustSec / SGT", code: "cts role-based sgt-map vlan-list <vlan-id> sgt <tag>", desc: "Catalyst IOS XE'de VLAN kaynakli trafige statik Security Group Tag atar; bu mapping tek basina SGACL enforcement veya ISE policy dagitimi degildir", sev: "w" },
+  { cat: "TrustSec / SGT", code: "cts role-based sgt-map <ipv4-prefix> sgt <tag>", desc: "Subnet kaynakli source IP'leri statik SGT'ye esler; network/prefix dogru olmali, SGT propagation ve enforcement ayrica dogrulanmali", sev: "w" },
+  { cat: "TrustSec / SGT", code: "cts role-based enforcement", desc: "TrustSec role-based policy enforcement'i etkinlestirir; once platform/ASIC desteği, SGACL policy ve ISE/domain tasarimini dogrulayin—trafik kesintisi riski vardir", sev: "w" },
   { cat: "Programmability / APIs", code: "netconf-yang ssh ipv4 access-list name <acl>", desc: "NETCONF-YANG oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. AAA/NACM role-based authorization yerine gecmez", sev: "w" },
   { cat: "Programmability / APIs", code: "restconf ipv4 access-list name <acl>", desc: "RESTCONF oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. HTTPS/TLS ve AAA/NACM ayri yapilandirilir", sev: "w" },
   // ─── CCNP ENCOR: CATALYST SD-WAN (IOS XE EDGE) ───
@@ -811,7 +815,7 @@ const COMMANDS = [
   { cat: "SD-Access", code: "show lisp session", desc: "LISP control-plane session durumunu gosterir; SD-Access fabric'te map-server/map-resolver ulasilabilirligini dogrulayin", sev: "i" },
   { cat: "SD-Access", code: "show lisp instance-id <instance-id> ipv4 map-cache", desc: "LISP instance map-cache kayitlarini gosterir; EID-to-RLOC kaydi yoksa control-plane kayit/lookup yolunu inceleyin", sev: "i" },
   { cat: "SD-Access", code: "show cts environment-data", desc: "TrustSec/CTS environment ve policy bilgisini goruntuler; SD-Access group/policy runtime'i Catalyst Center tarafinda da dogrulanmalidir", sev: "i" },
-  { cat: "SD-Access", code: "show cts role-based sgt-map all", desc: "IP/MAC-to-SGT role-based mapping tablosunu gosterir; beklenen grup etiketi atamasini dogrulayin", sev: "i" },
+  { cat: "SD-Access", code: "show cts role-based sgt-map all", desc: "IP/MAC/VLAN-to-SGT mapping tablosunu gosterir; mapping gorunmesi wire'da SGT propagation veya SGACL policy enforcement kaniti degildir", sev: "i" },
   { cat: "DHCP", code: "netbios-name-server <ip>", desc: "DHCP pool icinde: WINS sunucu IP. Eski Windows ortamlarinda NetBIOS name resolution icin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <start-ip> [end-ip]", desc: "DHCP'den haric tutulan IP araligi. Gateway, sunucu, printer gibi statik IP'li cihazlar icin. Pool olusturmadan ONCE tanimlayin", sev: "i" },
   { cat: "DHCP", code: "ip dhcp excluded-address <single-ip>", desc: "Tek IP'yi DHCP'den haric tut. Genellikle default gateway IP'si haric tutulur", sev: "i" },
@@ -3185,6 +3189,7 @@ const GITHUB_RESOURCES = [
 const WEB_RESOURCES = [
   { name: "Cisco IOS Command Reference", url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/fundamentals/command/cf_command_ref.html", desc: "Resmi Cisco IOS komut referansi." },
   { name: "Cisco IOS XE 17.17: NETCONF/RESTCONF Service-Level ACLs", url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/1717/b_1717_programmability_cg/netconf-and-restconf-service-level-acls.html", desc: "Resmi: named IPv4/IPv6 service ACL, netconf-yang ssh ipv4 access-list ve restconf ipv4 access-list; kaynak IP erişim filtresi AAA/NACM değildir." },
+  { name: "Cisco Catalyst 9300 IOS XE 17.14: TrustSec", url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-14/configuration_guide/cts/b_1714_cts_9300_cg.pdf", desc: "Resmi: Catalyst 9300 VLAN/subnet-to-SGT mapping ve role-based enforcement; platform/release desteğini kontrol edin." },
   { name: "PacketLife.net Cheat Sheets", url: "https://packetlife.net/library/cheat-sheets/", desc: "OSPF, BGP, VLANs, QoS, IOS, IPsec PDF cheat sheet'ler." },
   { name: "NetworkLessons.com", url: "https://networklessons.com/", desc: "Kapsamli Cisco network dersleri." },
   { name: "Cisco Learning Network", url: "https://learningnetwork.cisco.com/", desc: "Cisco sertifikasyon platformu." },
