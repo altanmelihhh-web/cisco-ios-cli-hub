@@ -780,6 +780,16 @@ const COMMANDS = [
   { cat: "Programmability / APIs", code: "show platform software yang-management process", desc: "IOS XE YANG yonetim islemlerinin calisma durumunu dogrular", sev: "i" },
   { cat: "Automation / Ansible", code: "ansible-galaxy collection install cisco.ios", desc: "Ansible denetleyici makinesine Cisco IOS koleksiyonunu kurar; ag cihazinda IOS CLI komutu degildir", sev: "i" },
   { cat: "Automation / Ansible", code: "ansible-playbook -i inventory.ini interfaces.yml --check --diff", desc: "IOS XE playbook'unu degisiklik yapmadan once diff ile onizler; --check her modulde tam simülasyon garantisi vermez, hedef cihazda collection/platform desteğini dogrulayin", sev: "w" },
+  // ─── CCNP ENCOR: MACsec / MKA ───
+  { cat: "MACsec / MKA", code: "mka policy <policy-name>", desc: "Global MACsec Key Agreement policy olusturur; platform/surumun MKA destekledigini ve iki ucun uyumunu dogrulayin", sev: "w" },
+  { cat: "MACsec / MKA", code: "key-server priority <0-255>", desc: "MKA policy altinda key-server secim onceligini ayarlar; ayni policy'nin iki endpoint'te uyumlu oldugunu kontrol edin", sev: "i" },
+  { cat: "MACsec / MKA", code: "macsec-cipher-suite <gcm-aes-128|gcm-aes-256>", desc: "MKA policy icin MACsec cipher suite belirler; iki peer'in platform/algoritma destegi ayni olmali", sev: "w" },
+  { cat: "MACsec / MKA", code: "mka pre-shared-key key-chain <key-chain-name>", desc: "Interface altinda mevcut, guvenli provision edilmis key-chain'i MKA PSK olarak referanslar; key-string'i komut gecmisine yazmayin", sev: "w" },
+  { cat: "MACsec / MKA", code: "macsec", desc: "Fiziksel interface'te MACsec'i etkinlestirir; peer/key uyusmazliginda encrypted link gelismeyebilir", sev: "w" },
+  { cat: "MACsec / MKA", code: "macsec access-control must-secure", desc: "Fiziksel interface'te MACsec korumasi olmayan trafigi guvenli saymaz; MKA/peer uyumsuzlugunda link erisimini kesebilir", sev: "w" },
+  { cat: "MACsec / MKA", code: "show mka policy", desc: "MKA policy cipher/priority ve uygulanan interface ozetini gosterir; policy gorunmesi secure session kuruldugu anlamina gelmez", sev: "i" },
+  { cat: "MACsec / MKA", code: "show mka sessions", desc: "Aktif MKA/MACsec session durumunu kontrol eder; model ve IOS XE release'e gore komut varyanti degisebilir", sev: "i" },
+  { cat: "MACsec / MKA", code: "show macsec interface", desc: "Interface MACsec durumunu ve platformun sundugu security-association/counter ayrintilarini inceler", sev: "i" },
   { cat: "Programmability / APIs", code: "netconf-yang ssh ipv4 access-list name <acl>", desc: "NETCONF-YANG oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. AAA/NACM role-based authorization yerine gecmez", sev: "w" },
   { cat: "Programmability / APIs", code: "restconf ipv4 access-list name <acl>", desc: "RESTCONF oturumlarini ACL'deki guvenilir IPv4 kaynaklariyla sinirlar; named ACL gerekir. HTTPS/TLS ve AAA/NACM ayri yapilandirilir", sev: "w" },
   // ─── CCNP ENCOR: CATALYST SD-WAN (IOS XE EDGE) ───
