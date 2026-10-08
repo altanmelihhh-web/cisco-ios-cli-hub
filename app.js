@@ -387,6 +387,16 @@ const COMMANDS = [
   { cat: "Route-Map", code: "show route-map", desc: "Tum route-map'leri goster: match/set komutlari, policy routing counts. Match sayisi 0 = hic eslesmemis", sev: "i" },
   { cat: "Route-Map", code: "show ip policy", desc: "PBR uygulanan interface'leri goster. Hangi interface'de hangi route-map aktif?", sev: "i" },
 
+  // ─── CONTROL PLANE POLICING ───
+  { cat: "CoPP", code: "class-map match-all <class-name>", desc: "Control-plane QoS sinifi olustur; ACL veya desteklenen match kriteriyle punt edilen trafik sinifini tanimla. Platform/release match desteğini kontrol edin", sev: "i" },
+  { cat: "CoPP", code: "match access-group name <acl>", desc: "CoPP class-map icinde named ACL ile control-plane trafik esle. ACL'yi yalniz hedeflenen protocol/peer'lari kapsayacak kadar dar tut", sev: "i" },
+  { cat: "CoPP", code: "policy-map <policy-name>", desc: "MQC policy-map olustur; class'lara control-plane icin police aksiyonu atar", sev: "i" },
+  { cat: "CoPP", code: "police <bps> conform transmit exceed drop", desc: "CoPP policer: rate icindeki paketleri ilet, asimi dusur. Rate'i production'da baseline/counter olcumu ve platform belgesine gore ayarla", sev: "w" },
+  { cat: "CoPP", code: "control-plane", desc: "Control-plane configuration context'ine gir; bu interface'e input/output service policy baglanir", sev: "i" },
+  { cat: "CoPP", code: "service-policy input <policy-name>", desc: "CoPP policy-map'i control-plane'e giris yonunde uygula. Yanlis policer routing adjacency ve yonetim erisimini bozabilir", sev: "w" },
+  { cat: "CoPP", code: "show policy-map control-plane", desc: "Control-plane service-policy attachment, class ve platform destekliyorsa conform/exceed/drop sayaçlarini dogrula", sev: "i" },
+  { cat: "CoPP", code: "show control-plane features", desc: "Control-plane uzerinde etkinlesmis koruma ozelliklerini goster (platforma bagli)", sev: "i" },
+
   // ─── INTERFACE / IP ───
   { cat: "Interface", code: "show ip interface brief", desc: "Tum interface ozeti: Interface, IP-Address, OK?, Method, Status (up/admin down), Protocol (up/down). En cok kullanilan komut", sev: "i" },
   { cat: "Interface", code: "show interfaces", desc: "Detayli interface bilgisi: status, speed, duplex, MTU, BW, errors (CRC/input/output/collision), counters", sev: "i" },
@@ -2268,6 +2278,24 @@ const CONFIG_GUIDES = {
       "show ip policy",
       "! Hangi interface'lerde PBR aktif",
     ], note: "PBR sadece GELEN trafige uygulanir (ip policy route-map). Router'in kendi trafigi icin: ip local policy route-map. PBR normal routing'den ONCE calisir. set ip next-hop vs set ip default next-hop farki: next-hop HER ZAMAN kullanilir, default next-hop sadece routing tablosunda route YOKSA kullanilir." },
+
+    { title: "Control Plane Policing (CoPP) Ornegi", steps: [
+      "! Scope ACL/class carefully: this example limits UDP traffic from a known management source",
+      "ip access-list extended CP-MGMT",
+      " permit udp host 192.0.2.50 any",
+      "! Classify packets destined for the control plane",
+      "class-map match-all CM-MGMT",
+      " match access-group name CP-MGMT",
+      "! Police excess traffic and attach the policy inbound",
+      "policy-map COPP-IN",
+      " class CM-MGMT",
+      "  police 64000 conform transmit exceed drop",
+      "control-plane",
+      " service-policy input COPP-IN",
+      "end",
+      "show policy-map control-plane",
+      "show control-plane features",
+    ], note: "Example rate is illustrative, not a production recommendation. Measure normal control-plane traffic first; platform defaults, supported matches and hardware counters vary by IOS XE release. Verify routing adjacencies, management access, and conform/exceed/drop counters after a staged deployment." },
 
     { title: "Prefix-List Detayli Kullanim", steps: [
       "! === ge/le Mantigi ===",
